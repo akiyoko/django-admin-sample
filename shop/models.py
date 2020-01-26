@@ -4,8 +4,9 @@ from django.db import models
 class Publisher(models.Model):
     """出版社モデル"""
 
-    class Meta(object):
+    class Meta:
         db_table = 'publisher'
+        verbose_name = verbose_name_plural = '出版社'
 
     name = models.CharField(verbose_name='出版社名', max_length=255)
 
@@ -16,8 +17,9 @@ class Publisher(models.Model):
 class Author(models.Model):
     """著者モデル"""
 
-    class Meta(object):
+    class Meta:
         db_table = 'author'
+        verbose_name = verbose_name_plural = '著者'
 
     name = models.CharField(verbose_name='著者名', max_length=255)
 
@@ -28,8 +30,9 @@ class Author(models.Model):
 class Book(models.Model):
     """本モデル"""
 
-    class Meta(object):
+    class Meta:
         db_table = 'book'
+        verbose_name = verbose_name_plural = '本'
 
     title = models.CharField(verbose_name='タイトル', max_length=255)
     image = models.ImageField(verbose_name='画像', null=True, blank=True)
