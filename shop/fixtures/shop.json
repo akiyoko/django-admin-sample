@@ -1,0 +1,51 @@
+[
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その4",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その4",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その4",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その4",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その4",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その4",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その4",
+      "price": 1000
+    }
+  }
+]
