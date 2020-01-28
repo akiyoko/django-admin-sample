@@ -2,7 +2,21 @@
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その4",
+      "title": "本 その1",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その2",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その3",
       "price": 1000
     }
   },
@@ -16,35 +30,56 @@
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その4",
+      "title": "本 その5",
       "price": 1000
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その4",
+      "title": "本 その6",
       "price": 1000
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その4",
+      "title": "本 その7",
       "price": 1000
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その4",
+      "title": "本 その8",
       "price": 1000
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その4",
+      "title": "本 その9",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その10",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その11",
+      "price": 1000
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "本 その12",
       "price": 1000
     }
   }

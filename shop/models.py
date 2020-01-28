@@ -8,7 +8,7 @@ class Publisher(models.Model):
         db_table = 'publisher'
         verbose_name = verbose_name_plural = '出版社'
 
-    name = models.CharField(verbose_name='出版社名', max_length=255)
+    name = models.CharField('出版社名', max_length=255)
 
     def __str__(self):
         return self.name
@@ -21,7 +21,7 @@ class Author(models.Model):
         db_table = 'author'
         verbose_name = verbose_name_plural = '著者'
 
-    name = models.CharField(verbose_name='著者名', max_length=255)
+    name = models.CharField('著者名', max_length=255)
 
     def __str__(self):
         return self.name
@@ -34,13 +34,20 @@ class Book(models.Model):
         db_table = 'book'
         verbose_name = verbose_name_plural = '本'
 
-    title = models.CharField(verbose_name='タイトル', max_length=255)
-    image = models.ImageField(verbose_name='画像', null=True, blank=True)
-    publisher = models.ForeignKey(Publisher, verbose_name='出版社', on_delete=models.PROTECT, null=True, blank=True)
+    BOOK_SIZES = (
+        ('B5', 'B5 - 182 x 257 mm'),
+        ('A4', 'A4 - 210 x 297 mm'),
+    )
+
+    title = models.CharField('タイトル', max_length=255)
+    image = models.ImageField('画像', null=True, blank=True)
+    publisher = models.ForeignKey(Publisher, verbose_name='出版社', on_delete=models.PROTECT,
+                                  null=True, blank=True)
     authors = models.ManyToManyField(Author, verbose_name='著者', blank=True)
-    price = models.PositiveIntegerField(verbose_name='価格', null=True, blank=True, default=0)
-    description = models.TextField(verbose_name='概要', null=True, blank=True)
-    publish_date = models.DateField(verbose_name='出版日', null=True, blank=True)
+    price = models.PositiveIntegerField('価格', null=True, blank=True, default=0)
+    size = models.CharField('サイズ', max_length=2, choices=BOOK_SIZES, null=True, blank=True)
+    description = models.TextField('概要', null=True, blank=True)
+    publish_date = models.DateField('出版日', null=True, blank=True)
 
     def __str__(self):
         return self.title
