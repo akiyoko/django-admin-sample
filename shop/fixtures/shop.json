@@ -1,86 +1,148 @@
 [
   {
+    "model": "shop.publisher",
+    "fields": {
+      "id": 1,
+      "name": "自費出版社"
+    }
+  },
+  {
+    "model": "shop.publisher",
+    "fields": {
+      "id": 2,
+      "name": "A社"
+    }
+  },
+  {
+    "model": "shop.publisher",
+    "fields": {
+      "id": 3,
+      "name": "B社"
+    }
+  },
+  {
+    "model": "shop.author",
+    "fields": {
+      "id": 1,
+      "name": "akiyoko"
+    }
+  },
+  {
     "model": "shop.book",
     "fields": {
-      "title": "本 その1",
+      "title": "Django本 その1",
+      "price": 1500,
+      "size": "a4",
+      "publish_date": "2018-08-21",
+      "publisher": "1",
+      "authors": "1"
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "Django本 その2",
+      "price": 1500,
+      "size": "a4",
+      "publish_date": "2018-10-08",
+      "publisher": "1",
+      "authors": "1"
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "Django本 その3",
+      "price": 1500,
+      "size": "a4",
+      "publish_date": "2019-09-22",
+      "publisher": "1",
+      "authors": "1"
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "Django本 その4",
+      "price": 500,
+      "size": "a4",
+      "publish_date": "2020-03-01",
+      "publisher": "1",
+      "authors": "1"
+    }
+  },
+  {
+    "model": "shop.book",
+    "fields": {
+      "title": "Django本 その5",
       "price": 1000
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その2",
-      "price": 1000
+      "title": "Django本 その6",
+      "price": 2000,
+      "size": "a4",
+      "publisher": "2",
+      "authors": "1"
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その3",
-      "price": 1000
+      "title": "Django本 その7",
+      "price": 1000,
+      "size": "a4",
+      "publisher": "2",
+      "authors": "1"
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その4",
-      "price": 1000
+      "title": "Django本 その8",
+      "price": 1500,
+      "size": "b5",
+      "publish_date": "2020-03-10",
+      "publisher": "2",
+      "authors": "1"
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その5",
-      "price": 1000
+      "title": "Django本 その9",
+      "publish_date": "2020-03-20",
+      "publisher": "3",
+      "price": 2000,
+      "size": "b5"
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その6",
-      "price": 1000
+      "title": "Django本 その10",
+      "price": 1000,
+      "publish_date": "2020-04-01"
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その7",
-      "price": 1000
+      "title": "Django本 その11",
+      "price": 1500,
+      "size": "a4",
+      "publish_date": "2020-05-01"
     }
   },
   {
     "model": "shop.book",
     "fields": {
-      "title": "本 その8",
-      "price": 1000
-    }
-  },
-  {
-    "model": "shop.book",
-    "fields": {
-      "title": "本 その9",
-      "price": 1000
-    }
-  },
-  {
-    "model": "shop.book",
-    "fields": {
-      "title": "本 その10",
-      "price": 1000
-    }
-  },
-  {
-    "model": "shop.book",
-    "fields": {
-      "title": "本 その11",
-      "price": 1000
-    }
-  },
-  {
-    "model": "shop.book",
-    "fields": {
-      "title": "本 その12",
-      "price": 1000
+      "title": "Django本 その12",
+      "price": 2000,
+      "size": "a4",
+      "publish_date": "2020-06-01"
     }
   }
 ]

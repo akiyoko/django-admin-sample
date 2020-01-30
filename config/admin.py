@@ -1,4 +1,11 @@
-from django.contrib.admin import site, AdminSite
+from collections import OrderedDict
+
+from django.contrib.admin import AdminSite
+
+APP_LIST_ORDER = ((
+    ('shop', ('Book', 'Author', 'Publisher')),
+    ('auth', ('User', 'Group')),
+))
 
 
 class MyAdminSite(AdminSite):
@@ -6,19 +13,19 @@ class MyAdminSite(AdminSite):
     site_title = 'Site Title'
     index_title = 'Index Title'
 
-    def __init__(self, *args, **kwargs):
-        # Note: カスタマイズしたAdminSiteをURLconfで読み込む前に
-        #       本家のAdminSiteオブジェクトが生成されてモデルクラスの登録も完了してしまうので、
-        #       ここで改めて保持しているオブジェクトの入れ替えをおこなう
-        super().__init__(*args, **kwargs)
-        # Note: admin.siteに登録されたモデルを引き継ぐ
-        #       https://stackoverflow.com/a/35003223
-        self._registry.update(site._registry)
-        # Note: ModelAdminのadmin_siteが本家AdminSiteになってしまうことで、
-        #       モデルごとの画面でsite_header, site_titleが反映されないなどの不具合が出る。
-        #       https://stackoverflow.com/a/54790209
-        for model, model_admin in self._registry.items():
-            model_admin.admin_site = self
+    def get_app_list(self, request):
+        """app_listを取得して再ソートする"""
+        app_dict = self._build_app_dict(request)
 
+        # APP_LIST_ORDER のキーの並び順通りにソート
+        app_list = sorted(app_dict.values(),
+                          key=lambda x: list(OrderedDict(APP_LIST_ORDER).keys()).index(
+                              x['app_label']))
 
-admin_site = MyAdminSite()
+        # APP_LIST_ORDER のバリューの並び順通りにソート
+        for app in app_list:
+            app['models'].sort(
+                key=lambda x: list(OrderedDict(APP_LIST_ORDER)[app['app_label']]).index(
+                    x['object_name']))
+
+        return app_list

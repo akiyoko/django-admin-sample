@@ -34,9 +34,9 @@ class Book(models.Model):
         db_table = 'book'
         verbose_name = verbose_name_plural = '本'
 
-    BOOK_SIZES = (
-        ('B5', 'B5 - 182 x 257 mm'),
-        ('A4', 'A4 - 210 x 297 mm'),
+    SIZE_CHOICES = (
+        ('b5', 'B5 - 182 x 257 mm'),
+        ('a4', 'A4 - 210 x 297 mm'),
     )
 
     title = models.CharField('タイトル', max_length=255)
@@ -45,7 +45,7 @@ class Book(models.Model):
                                   null=True, blank=True)
     authors = models.ManyToManyField(Author, verbose_name='著者', blank=True)
     price = models.PositiveIntegerField('価格', null=True, blank=True, default=0)
-    size = models.CharField('サイズ', max_length=2, choices=BOOK_SIZES, null=True, blank=True)
+    size = models.CharField('サイズ', max_length=2, choices=SIZE_CHOICES, null=True, blank=True)
     description = models.TextField('概要', null=True, blank=True)
     publish_date = models.DateField('出版日', null=True, blank=True)
 
