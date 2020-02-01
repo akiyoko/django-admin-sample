@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib import admin
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.html import format_html
 
 from .models import Author, Book, Publisher
 
@@ -28,7 +29,14 @@ class BookModelAdmin(admin.ModelAdmin):
     date_hierarchy = 'publish_date'
     form = BookAdminForm
     list_per_page = 10
-    empty_value_display = '-'
+    empty_value_display = '(なし)'
+
+    actions = ['publish_today']
+
+    def publish_today(self, request, queryset):
+        queryset.update(publish_date=timezone.now().date())
+
+    publish_today.short_description = '出版日を今日に更新'
 
     class Media:
         css = {

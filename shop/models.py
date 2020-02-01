@@ -1,5 +1,7 @@
 from django.db import models
 
+from django.urls import reverse
+
 
 class Publisher(models.Model):
     """出版社モデル"""
@@ -34,9 +36,11 @@ class Book(models.Model):
         db_table = 'book'
         verbose_name = verbose_name_plural = '本'
 
+    SIZE_A4 = 'a4'
+    SIZE_B5 = 'b5'
     SIZE_CHOICES = (
-        ('b5', 'B5 - 182 x 257 mm'),
-        ('a4', 'A4 - 210 x 297 mm'),
+        (SIZE_A4, 'A4 - 210 x 297 mm'),
+        (SIZE_B5, 'B5 - 182 x 257 mm'),
     )
 
     title = models.CharField('タイトル', max_length=255)
@@ -53,5 +57,5 @@ class Book(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        from django.urls import reverse
+        # TODO
         return reverse('admin:shop_book_change', args=[self.id])
