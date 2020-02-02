@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     # My applications
     'shop.apps.ShopConfig',
+    # 'accounts.apps.AccountsConfig',
 ]
 
 MIDDLEWARE = [
@@ -87,6 +88,8 @@ DATABASES = {
     }
 }
 
+
+# AUTH_USER_MODEL = 'accounts.Employee'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators

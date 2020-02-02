@@ -4,7 +4,17 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import Author, Book, Publisher
+from .models import Author, Book, Publisher, BookStock
+
+
+class BookInline(admin.TabularInline):
+    # ForeignKey を持っている側（多側）のモデルをインラインにする
+    model = Book
+
+
+class BookStockInline(admin.TabularInline):
+    # OneToOne を持っているモデルもインラインOK
+    model = BookStock
 
 
 class BookAdminForm(forms.ModelForm):
@@ -17,21 +27,27 @@ class BookAdminForm(forms.ModelForm):
 
 
 class BookModelAdmin(admin.ModelAdmin):
-    # fields = ('display_image',)
-    # readonly_fields = ('display_image',)
-    list_display = ('title', 'display_price', 'display_size', 'display_publisher',
+    list_display = ('id', 'title', 'display_price', 'display_size', 'display_publisher',
                     'publish_date')  # 'display_image',
-    list_display_links = ('title',)
+    list_display_links = ('id', 'title')
     list_filter = ('size', 'price')
     list_select_related = ('publisher',)
-    ordering = ('id',)  # '-publish_date',)
+    ordering = ('id',)  # '-publish_date',
     search_fields = ('title', 'price', 'publish_date',)
     date_hierarchy = 'publish_date'
-    form = BookAdminForm
     list_per_page = 10
+    list_max_show_all = 100
     empty_value_display = '(なし)'
-
     actions = ['publish_today']
+
+    fields = (
+        'title', 'price', 'size', 'image', 'authors', 'publisher', 'publish_date', 'created_at')
+    # exclude = ('publisher',)
+    readonly_fields = ('created_at',)
+    form = BookAdminForm
+    inlines = [
+        BookStockInline,
+    ]
 
     def publish_today(self, request, queryset):
         queryset.update(publish_date=timezone.now().date())
@@ -56,12 +72,11 @@ class BookModelAdmin(admin.ModelAdmin):
     display_price.admin_order_field = 'price'
 
     def display_size(self, obj):
-        if not obj.size:
-            return None
         return obj.get_size_display()
 
     display_size.short_description = 'サイズ'
     display_size.admin_order_field = 'size'
+    display_size.empty_value_display = '(未定)'
 
     def display_publisher(self, obj):
         if not obj.publisher:
@@ -91,7 +106,17 @@ class BookModelAdmin(admin.ModelAdmin):
     #
     # display_publish_date.short_description = '出版日'
 
+    # def save_model(self, request, obj, form, change):
+    #     obj.save()
 
-admin.site.register(Publisher)
-admin.site.register(Author)
+
+class PublisherModelAdmin(admin.ModelAdmin):
+    inlines = [
+        BookInline,
+    ]
+
+
 admin.site.register(Book, BookModelAdmin)
+admin.site.register(Author)
+# admin.site.register(BookStock)
+admin.site.register(Publisher, PublisherModelAdmin)
