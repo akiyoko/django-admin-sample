@@ -4,10 +4,10 @@ from django.contrib.auth.admin import UserAdmin
 from .models import Department, Employee
 
 
-class EmployeeInline(admin.TabularInline):
+class EmployeeInline(admin.StackedInline):
     # ForeignKey を持っている側（多側）のモデルをインラインにする
     model = Employee
-    fields = ('username', 'email', 'first_name', 'last_name')
+    fields = ('username', 'last_name', 'first_name')
     extra = 1
 
 

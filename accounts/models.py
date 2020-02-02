@@ -22,8 +22,9 @@ class Employee(AbstractUser):
         db_table = 'employee'
         verbose_name = verbose_name_plural = '従業員'
 
-    department = models.ForeignKey(Department, verbose_name='部署', on_delete=models.SET_NULL,
-                                   null=True, blank=True)
+    department = models.ForeignKey(
+        Department, verbose_name='部署', on_delete=models.SET_NULL,
+        null=True, blank=True)
 
     def __str__(self):
         return self.username

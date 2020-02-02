@@ -123,7 +123,7 @@
     "model": "shop.book",
     "fields": {
       "title": "Django本 その10",
-      "price": 1000,
+      "price": 2000,
       "publish_date": "2020-04-01"
     }
   },
@@ -140,7 +140,7 @@
     "model": "shop.book",
     "fields": {
       "title": "Django本 その12",
-      "price": 2000,
+      "price": null,
       "size": "a4",
       "publish_date": "2020-06-01"
     }

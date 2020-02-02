@@ -1,5 +1,8 @@
+import csv
+
 from django import forms
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
@@ -27,24 +30,69 @@ class BookAdminForm(forms.ModelForm):
 
 
 class BookModelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'display_price', 'display_size', 'display_publisher',
-                    'publish_date')  # 'display_image',
+    list_display = ('id', 'title', 'price', 'size', 'publish_date')
     list_display_links = ('id', 'title')
-    list_filter = ('size', 'price')
-    list_select_related = ('publisher',)
-    ordering = ('id',)  # '-publish_date',
-    search_fields = ('title', 'price', 'publish_date',)
-    date_hierarchy = 'publish_date'
+    # ordering = ('-publish_date', 'id')
+    ordering = ('id',)
+    # search_fields = ('title', 'price', 'publish_date',)
+    # list_filter = ('size', 'price')
     list_per_page = 10
-    list_max_show_all = 100
-    empty_value_display = '(なし)'
-    actions = ['publish_today']
+    # list_max_show_all = 100
+    # date_hierarchy = 'publish_date'
+    # actions = ['publish_today']
+    actions = ['download_as_csv']
 
-    fields = (
-        'title', 'price', 'size', 'image', 'authors', 'publisher', 'publish_date', 'created_at')
-    # exclude = ('publisher',)
-    readonly_fields = ('created_at',)
-    form = BookAdminForm
+    # def has_add_permission(self, request):
+    #     return False
+    #
+    def has_change_permission(self, request, obj=None):
+        has_permission = super().has_change_permission(request, obj)
+        return has_permission and request.user.email.rpartition('@')[2] == 'example.com'
+    #
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
+    #
+    # def has_view_permission(self, request, obj=None):
+    #     pass
+    #
+    # def has_view_or_change_permission(self, request, obj=None):
+    #     pass
+
+    # def has_module_permission(self, request):
+    #     return False
+
+    def download_as_csv(self, request, queryset):
+        meta = self.model._meta
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+        writer = csv.writer(response)
+        field_names = [field.name for field in meta.fields]
+        writer.writerow(field_names)
+        for obj in queryset:
+            writer.writerow([getattr(obj, field) for field in field_names])
+
+        return response
+
+    download_as_csv.short_description = 'CSVダウンロード'
+
+    # list_display = ('id', 'title', 'display_price', 'display_size', 'display_publisher',
+    #                 'publish_date')  # 'display_image',
+    # list_display_links = ('id', 'title')
+    # list_filter = ('size', 'price')
+    # list_select_related = ('publisher',)
+    # ordering = ('id',)  # '-publish_date',
+    # search_fields = ('title', 'price', 'publish_date',)
+    # date_hierarchy = 'publish_date'
+    # list_per_page = 10
+    # list_max_show_all = 100
+    # empty_value_display = '(なし)'
+    # actions = ['publish_today']
+    #
+    # fields = (
+    #     'title', 'price', 'size', 'image', 'authors', 'publisher', 'publish_date', 'created_at')
+    # # exclude = ('publisher',)
+    # readonly_fields = ('created_at',)
+    # form = BookAdminForm
     inlines = [
         BookStockInline,
     ]
@@ -70,13 +118,14 @@ class BookModelAdmin(admin.ModelAdmin):
     #       ただ、カスタムフィールドが、あるフィールドの代理になっているときは、そのフィールド名を指定するとソートできる
     #       https://qiita.com/zenwerk/items/044c149d93db097cdaf8
     display_price.admin_order_field = 'price'
+    display_price.empty_value_display = '(価格未定)'
 
-    def display_size(self, obj):
-        return obj.get_size_display()
-
-    display_size.short_description = 'サイズ'
-    display_size.admin_order_field = 'size'
-    display_size.empty_value_display = '(未定)'
+    # def display_size(self, obj):
+    #     # Note: これは勝手にやってくれるっぽい！
+    #     return obj.get_size_display()
+    #
+    # display_size.short_description = 'サイズ'
+    # display_size.admin_order_field = 'size'
 
     def display_publisher(self, obj):
         if not obj.publisher:
@@ -118,5 +167,5 @@ class PublisherModelAdmin(admin.ModelAdmin):
 
 admin.site.register(Book, BookModelAdmin)
 admin.site.register(Author)
-# admin.site.register(BookStock)
+# # admin.site.register(BookStock)
 admin.site.register(Publisher, PublisherModelAdmin)
