@@ -4,9 +4,10 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-# admin.site.site_header = 'Site Header'
-# admin.site.site_title = 'Site Title'
-# admin.site.index_title = 'Index Title'
+# admin.site.site_header = '管理サイト'
+# admin.site.site_title = 'XXプロジェクト'
+# admin.site.index_title = 'ホーム'
+# admin.site.site_url = None
 
 urlpatterns = [
     path('admin/', admin.site.urls),

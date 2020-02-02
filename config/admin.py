@@ -3,8 +3,8 @@ from collections import OrderedDict
 from django.contrib.admin import AdminSite
 
 APP_LIST_ORDER = OrderedDict((
-    ('shop', ('Book', 'Author', 'Publisher')),
     ('auth', ('User', 'Group')),
+    ('shop', ('Book', 'Author', 'Publisher')),
 ))
 
 
@@ -12,6 +12,7 @@ class MyAdminSite(AdminSite):
     """AdminSite をカスタマイズしたクラス"""
 
     site_header = '管理サイト'
+    site_title = 'XXプロジェクト'
     index_title = 'ホーム'
     site_url = None
 
