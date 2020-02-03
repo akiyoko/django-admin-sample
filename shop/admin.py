@@ -31,35 +31,53 @@ class BookAdminForm(forms.ModelForm):
 
 class BookModelAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'price', 'size', 'publish_date')
+    # list_display = ('id', 'title', 'display_price', 'display_size', 'display_publisher',
+    #                 'publish_date')  # 'display_image',
     list_display_links = ('id', 'title')
+    # list_select_related = ('publisher',)
     # ordering = ('-publish_date', 'id')
     ordering = ('id',)
     # search_fields = ('title', 'price', 'publish_date',)
     # list_filter = ('size', 'price')
     list_per_page = 10
-    # list_max_show_all = 100
+    list_max_show_all = 1000
     # date_hierarchy = 'publish_date'
-    # actions = ['publish_today']
-    actions = ['download_as_csv']
+    actions = ['download_as_csv', 'publish_today']
+    # empty_value_display = '(なし)'
+
+    # fields = (
+    #     'id', 'title', 'price', 'size', 'image', 'publish_date', 'created_by', 'created_at'
+    # )
+    # exclude = ('publisher',)
+    # readonly_fields = ('id', 'created_by', 'created_at')
+    form = BookAdminForm
+    # inlines = [
+    #     BookStockInline,
+    # ]
+
+    class Media:
+        css = {
+            'all': ('my_styles.css',)
+        }
+        js = ('my_code.js',)
+
+    def save_model(self, request, obj, form, change):
+        obj.created_by = request.user
+        super().save_model(request, obj, form, change)
 
     # def has_add_permission(self, request):
     #     return False
     #
-    def has_change_permission(self, request, obj=None):
-        has_permission = super().has_change_permission(request, obj)
-        return has_permission and request.user.email.rpartition('@')[2] == 'example.com'
+    # def has_change_permission(self, request, obj=None):
+    #     has_perm = super().has_change_permission(request, obj)
+    #     return has_perm and request.user.email.rpartition('@')[2] == 'example.com'
     #
     # def has_delete_permission(self, request, obj=None):
-    #     return False
-    #
-    # def has_view_permission(self, request, obj=None):
-    #     pass
-    #
-    # def has_view_or_change_permission(self, request, obj=None):
-    #     pass
-
-    # def has_module_permission(self, request):
-    #     return False
+    #     has_perm = super().has_delete_permission(request, obj)
+    #     if obj is None:
+    #         return has_perm
+    #     else:
+    #         return has_perm and obj.created_by == request.user
 
     def download_as_csv(self, request, queryset):
         meta = self.model._meta
@@ -74,39 +92,13 @@ class BookModelAdmin(admin.ModelAdmin):
         return response
 
     download_as_csv.short_description = 'CSVダウンロード'
-
-    # list_display = ('id', 'title', 'display_price', 'display_size', 'display_publisher',
-    #                 'publish_date')  # 'display_image',
-    # list_display_links = ('id', 'title')
-    # list_filter = ('size', 'price')
-    # list_select_related = ('publisher',)
-    # ordering = ('id',)  # '-publish_date',
-    # search_fields = ('title', 'price', 'publish_date',)
-    # date_hierarchy = 'publish_date'
-    # list_per_page = 10
-    # list_max_show_all = 100
-    # empty_value_display = '(なし)'
-    # actions = ['publish_today']
-    #
-    # fields = (
-    #     'title', 'price', 'size', 'image', 'authors', 'publisher', 'publish_date', 'created_at')
-    # # exclude = ('publisher',)
-    # readonly_fields = ('created_at',)
-    # form = BookAdminForm
-    inlines = [
-        BookStockInline,
-    ]
+    download_as_csv.allowed_permissions = ('view',)
 
     def publish_today(self, request, queryset):
         queryset.update(publish_date=timezone.now().date())
 
     publish_today.short_description = '出版日を今日に更新'
-
-    class Media:
-        css = {
-            'all': ('my_styles.css',)
-        }
-        js = ('my_code.js',)
+    publish_today.allowed_permissions = ('change',)
 
     def display_price(self, obj):
         if not obj.price:

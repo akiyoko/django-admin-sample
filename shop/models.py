@@ -1,7 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.db import models
-
 from django.urls import reverse
 from django.utils import timezone
+
+User = get_user_model()
 
 
 class Publisher(models.Model):
@@ -53,6 +55,8 @@ class Book(models.Model):
     size = models.CharField('サイズ', max_length=2, choices=SIZE_CHOICES, null=True, blank=True)
     description = models.TextField('概要', null=True, blank=True)
     publish_date = models.DateField('出版日', null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name='登録ユーザー', on_delete=models.SET_NULL,
+                                   null=True, blank=True, editable=False)
     created_at = models.DateTimeField('登録日時', default=timezone.now, editable=False)
 
     def __str__(self):
