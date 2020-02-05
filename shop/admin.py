@@ -21,18 +21,24 @@ class BookStockInline(admin.TabularInline):
 
 
 class BookAdminForm(forms.ModelForm):
-    pass
     # def clean_title(self):
-    #     value = self.cleaned_data['title']
+    #     value = self.cleaned_data.get['title']
     #     if 'Django' not in value:
-    #         raise forms.ValidationError("タイトルには「Django」という文字を含めてください")
+    #         raise forms.ValidationError(
+    #             "タイトルには「Django」という文字を含めてください。")
     #     return value
+
+    def clean(self):
+        title = self.cleaned_data.get('title')
+        price = self.cleaned_data.get('price')
+        if title and title and '薄い本' in title and price > 3000:
+            raise forms.ValidationError("薄い本は3,000円以下にしてください。")
 
 
 class BookModelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'price', 'size', 'publish_date')
-    # list_display = ('id', 'title', 'display_price', 'display_size', 'display_publisher',
-    #                 'publish_date')  # 'display_image',
+    # list_display = ('id', 'title', 'price', 'size', 'publish_date')
+    list_display = ('id', 'title', 'display_price', 'display_publish_date',
+                    'display_image')
     list_display_links = ('id', 'title')
     # list_select_related = ('publisher',)
     # ordering = ('-publish_date', 'id')
@@ -49,7 +55,7 @@ class BookModelAdmin(admin.ModelAdmin):
     #     'id', 'title', 'price', 'size', 'image', 'publish_date', 'created_by', 'created_at'
     # )
     # exclude = ('publisher',)
-    # readonly_fields = ('id', 'created_by', 'created_at')
+    readonly_fields = ('created_by', 'created_at')
     form = BookAdminForm
     # inlines = [
     #     BookStockInline,
@@ -138,14 +144,15 @@ class BookModelAdmin(admin.ModelAdmin):
 
     display_image.short_description = '画像'
     # 値が None の場合に利用される（空文字では利用されない）
-    display_image.empty_value_display = 'No image.........'
+    display_image.empty_value_display = 'No image'
 
-    # def display_publish_date(self, obj):
-    #     if not obj.publish_date:
-    #         return None
-    #     return obj.publish_date.strftime('%d %b %Y %H:%M:%S')
-    #
-    # display_publish_date.short_description = '出版日'
+    def display_publish_date(self, obj):
+        if not obj.publish_date:
+            return None
+        return obj.publish_date.strftime('%Y/%m/%d')
+
+    display_publish_date.short_description = '出版日'
+    display_publish_date.admin_order_field = 'publish_date'
 
     # def save_model(self, request, obj, form, change):
     #     obj.save()
