@@ -36,9 +36,9 @@ class BookAdminForm(forms.ModelForm):
 
 
 class BookModelAdmin(admin.ModelAdmin):
-    # list_display = ('id', 'title', 'price', 'size', 'publish_date')
-    list_display = ('id', 'title', 'display_price', 'display_publish_date',
-                    'display_image')
+    list_display = ('id', 'title', 'price', 'size', 'publish_date')
+    # list_display = ('id', 'title', 'display_price', 'display_publish_date',
+    #                 'display_image')
     list_display_links = ('id', 'title')
     # list_select_related = ('publisher',)
     # ordering = ('-publish_date', 'id')
@@ -63,9 +63,9 @@ class BookModelAdmin(admin.ModelAdmin):
 
     class Media:
         css = {
-            'all': ('my_styles.css',)
+            'all': ('admin/custom-forms.css',)
         }
-        js = ('my_code.js',)
+        # js = ('custom-code.js',)
 
     def save_model(self, request, obj, form, change):
         obj.created_by = request.user

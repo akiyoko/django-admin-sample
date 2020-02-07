@@ -2,3 +2,5 @@ Django~=2.2
 Pillow
 django-extensions
 django-debug-toolbar
+selenium
+chromedriver-binary==80.0.3987.16.0
