@@ -1,0 +1,25 @@
+a.viewsitelink {
+  color: #ff4500;
+}
+
+
+.submit-row a.deletelink {
+    display: block;
+    background: #ba2121;
+    border-radius: 4px;
+    padding: 10px 15px;
+    height: 15px;
+    line-height: 15px;
+    color: #333;
+}
+
+.submit-row a.closelink {
+    display: inline-block;
+    background: #bbbbbb;
+    border-radius: 4px;
+    padding: 10px 15px;
+    height: 15px;
+    line-height: 15px;
+    margin: 0 0 0 5px;
+    color: #333;
+}

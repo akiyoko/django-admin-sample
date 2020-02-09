@@ -21,24 +21,25 @@ class BookStockInline(admin.TabularInline):
 
 
 class BookAdminForm(forms.ModelForm):
-    # def clean_title(self):
-    #     value = self.cleaned_data.get['title']
-    #     if 'Django' not in value:
-    #         raise forms.ValidationError(
-    #             "タイトルには「Django」という文字を含めてください。")
-    #     return value
+    def clean_title(self):
+        value = self.cleaned_data['title']
+        if 'Java' in value:
+            raise forms.ValidationError(
+                "タイトルには「Java」を含めないでください。")
+        return value
 
     def clean(self):
         title = self.cleaned_data.get('title')
         price = self.cleaned_data.get('price')
-        if title and title and '薄い本' in title and price > 3000:
-            raise forms.ValidationError("薄い本は3,000円以下にしてください。")
+        if title and '薄い本' in title and price and price > 3000:
+            raise forms.ValidationError(
+                "薄い本は3,000円を超えてはいけません。")
 
 
 class BookModelAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'price', 'size', 'publish_date')
-    # list_display = ('id', 'title', 'display_price', 'display_publish_date',
-    #                 'display_image')
+    # list_display = ('id', 'title', 'format_price', 'format_publish_date',
+    #                 'format_image')
     list_display_links = ('id', 'title')
     # list_select_related = ('publisher',)
     # ordering = ('-publish_date', 'id')
@@ -51,11 +52,11 @@ class BookModelAdmin(admin.ModelAdmin):
     actions = ['download_as_csv', 'publish_today']
     # empty_value_display = '(なし)'
 
-    # fields = (
-    #     'id', 'title', 'price', 'size', 'image', 'publish_date', 'created_by', 'created_at'
-    # )
+    fields = (
+        'id', 'title', 'price', 'size', 'publish_date', 'created_by', 'created_at',
+    )
     # exclude = ('publisher',)
-    readonly_fields = ('created_by', 'created_at')
+    readonly_fields = ('id', 'title', 'created_by', 'created_at')
     form = BookAdminForm
     # inlines = [
     #     BookStockInline,
@@ -63,12 +64,14 @@ class BookModelAdmin(admin.ModelAdmin):
 
     class Media:
         css = {
-            'all': ('admin/custom-forms.css',)
+            'all': ('admin/css/custom_forms.css',)
         }
-        # js = ('custom-code.js',)
+        # js = ('custom_code.js',)
 
     def save_model(self, request, obj, form, change):
-        obj.created_by = request.user
+        """モデル保存前に処理を追加する"""
+        if not change:
+            obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
     # def has_add_permission(self, request):
@@ -94,39 +97,30 @@ class BookModelAdmin(admin.ModelAdmin):
         writer.writerow(field_names)
         for obj in queryset:
             writer.writerow([getattr(obj, field) for field in field_names])
-
         return response
 
     download_as_csv.short_description = 'CSVダウンロード'
     download_as_csv.allowed_permissions = ('view',)
 
     def publish_today(self, request, queryset):
+        """出版日を今日に更新する"""
         queryset.update(publish_date=timezone.now().date())
 
     publish_today.short_description = '出版日を今日に更新'
     publish_today.allowed_permissions = ('change',)
 
-    def display_price(self, obj):
-        if not obj.price:
+    def format_price(self, obj):
+        """価格のフォーマットを変更する"""
+        if obj.price is None:
             return None
         return '{:,d} 円'.format(obj.price)
 
-    display_price.short_description = '価格'
-    # Note: Django のソートは全て DB のクエリレベルで行うので、実際にDBにカラムが存在しないフィールドはソートできない。
-    #       ただ、カスタムフィールドが、あるフィールドの代理になっているときは、そのフィールド名を指定するとソートできる
-    #       https://qiita.com/zenwerk/items/044c149d93db097cdaf8
-    display_price.admin_order_field = 'price'
-    display_price.empty_value_display = '(価格未定)'
+    format_price.short_description = '価格'
+    format_price.admin_order_field = 'price'
 
-    # def display_size(self, obj):
-    #     # Note: これは勝手にやってくれるっぽい！
-    #     return obj.get_size_display()
-    #
-    # display_size.short_description = 'サイズ'
-    # display_size.admin_order_field = 'size'
-
-    def display_publisher(self, obj):
-        if not obj.publisher:
+    def format_publisher(self, obj):
+        """出版社のフォーマットを変更する"""
+        if obj.publisher is None:
             return None
         return format_html(
             '<a href="{}">{}</a>',
@@ -134,28 +128,26 @@ class BookModelAdmin(admin.ModelAdmin):
             obj.publisher.name,
         )
 
-    display_publisher.short_description = '出版社'
-    display_publisher.admin_order_field = 'publisher__name'
+    format_publisher.short_description = '出版社'
+    format_publisher.admin_order_field = 'publisher__name'
 
-    def display_image(self, obj):
-        if not obj.image:
-            return None
-        return format_html('<img src="{}" width="200" />', obj.image.url)
-
-    display_image.short_description = '画像'
-    # 値が None の場合に利用される（空文字では利用されない）
-    display_image.empty_value_display = 'No image'
-
-    def display_publish_date(self, obj):
-        if not obj.publish_date:
+    def format_publish_date(self, obj):
+        """出版日のフォーマットを変更する"""
+        if obj.publish_date is None:
             return None
         return obj.publish_date.strftime('%Y/%m/%d')
 
-    display_publish_date.short_description = '出版日'
-    display_publish_date.admin_order_field = 'publish_date'
+    format_publish_date.short_description = '出版日'
+    format_publish_date.admin_order_field = 'publish_date'
 
-    # def save_model(self, request, obj, form, change):
-    #     obj.save()
+    def format_image(self, obj):
+        """画像をHTMLで修飾する"""
+        if not obj.image:
+            return None
+        return format_html('<img src="{}" width="100" />', obj.image.url)
+
+    format_image.short_description = '画像'
+    format_image.empty_value_display = 'No image'
 
 
 class PublisherModelAdmin(admin.ModelAdmin):
