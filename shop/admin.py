@@ -37,15 +37,15 @@ class BookAdminForm(forms.ModelForm):
 
 
 class BookModelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'price', 'size', 'publish_date')
+    list_display = ('id', 'title', 'format_price', 'size', 'publish_date')
     # list_display = ('id', 'title', 'format_price', 'format_publish_date',
     #                 'format_image')
     list_display_links = ('id', 'title')
     # list_select_related = ('publisher',)
     # ordering = ('-publish_date', 'id')
     ordering = ('id',)
-    # search_fields = ('title', 'price', 'publish_date',)
-    # list_filter = ('size', 'price')
+    search_fields = ('title', 'price', 'publish_date',)
+    list_filter = ('size', 'price')
     list_per_page = 10
     list_max_show_all = 1000
     # date_hierarchy = 'publish_date'
@@ -89,6 +89,7 @@ class BookModelAdmin(admin.ModelAdmin):
     #         return has_perm and obj.created_by == request.user
 
     def download_as_csv(self, request, queryset):
+        """選択されたレコードのCSVダウンロードをおこなう"""
         meta = self.model._meta
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
@@ -100,10 +101,9 @@ class BookModelAdmin(admin.ModelAdmin):
         return response
 
     download_as_csv.short_description = 'CSVダウンロード'
-    download_as_csv.allowed_permissions = ('view',)
 
     def publish_today(self, request, queryset):
-        """出版日を今日に更新する"""
+        """選択されたレコードの出版日を今日に更新する"""
         queryset.update(publish_date=timezone.now().date())
 
     publish_today.short_description = '出版日を今日に更新'

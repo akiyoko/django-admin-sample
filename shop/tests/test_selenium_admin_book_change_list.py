@@ -3,11 +3,11 @@ import os
 from django.contrib.admin.tests import AdminSeleniumTestCase
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.test import tag
 from django.urls import reverse
 from selenium import webdriver
 
 try:
+    # chromedriver-binaryのパスを通してくれる
     import chromedriver_binary
 except ImportError:
     raise
@@ -17,10 +17,10 @@ from ..models import Book
 User = get_user_model()
 
 
-@tag('selenium')
-class TestAdminListDisplay(AdminSeleniumTestCase):
+class TestSeleniumAdminBookChangeList(AdminSeleniumTestCase):
     """管理サイト Bookモデル一覧画面のシナリオテスト"""
 
+    # スクリーンショットを保存するディレクトリ
     SCREENSHOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                   'screenshots')
     TARGET_URL = reverse('admin:shop_book_changelist')
@@ -31,6 +31,9 @@ class TestAdminListDisplay(AdminSeleniumTestCase):
 
     @classmethod
     def create_webdriver(cls):
+        """Chrome用のWebDriverインスタンスを作成する
+
+        SeleniumTestCaseのsetUpClassで呼ばれるメソッドをオーバーライド"""
         chrome_options = webdriver.ChromeOptions()
         # ヘッドレスモード
         chrome_options.add_argument('--headless')
@@ -49,7 +52,7 @@ class TestAdminListDisplay(AdminSeleniumTestCase):
         self.view_only_staff.user_permissions.set(
             Permission.objects.filter(codename='view_book'))
 
-        # モデルレコードを作成
+        # テストレコードを作成
         self.books = [
             Book.objects.create(
                 title='Book {}'.format(i + 1),
@@ -66,7 +69,8 @@ class TestAdminListDisplay(AdminSeleniumTestCase):
         """スクリーンショットを撮る"""
         if not os.path.exists(self.SCREENSHOT_DIR):
             os.makedirs(self.SCREENSHOT_DIR, exist_ok=True)
-        screenshot_path = os.path.join(self.SCREENSHOT_DIR, '{}.png'.format(self.id()))
+        screenshot_path = os.path.join(self.SCREENSHOT_DIR,
+                                       '{}.png'.format(self.id()))
         self.selenium.save_screenshot(screenshot_path)
 
     def get_result_list(self):
@@ -78,9 +82,8 @@ class TestAdminListDisplay(AdminSeleniumTestCase):
 
     def assert_thead(self, head, expected_texts):
         """検索結果テーブルのヘッダを検証する"""
-        head_texts = [c.text for c in
-                      head.find_elements_by_xpath(
-                          'th[contains(@class, "column-")]')]
+        head_texts = [c.text for c in head.find_elements_by_xpath(
+            'th[contains(@class, "column-")]')]
         self.assertListEqual(head_texts, expected_texts)
 
     def assert_tbody_row(self, row, expected_texts):
@@ -101,7 +104,7 @@ class TestAdminListDisplay(AdminSeleniumTestCase):
                 '//a[@class="{}"]'.format(css_class))) == 0)
 
     def test_book_change_list_by_admin(self):
-        """Bookモデル一覧画面の検証（システム管理者の場合）"""
+        """Bookモデル一覧画面の画面表示の検証（システム管理者の場合）"""
 
         # システム管理者でログイン
         self.admin_login(self.superuser.username, self.PASSWORD)
@@ -115,12 +118,18 @@ class TestAdminListDisplay(AdminSeleniumTestCase):
         self.assertEqual(len(rows), 2)
         self.assert_tbody_row(rows[0], ['Book 1', '1000', '-', '-'])
         self.assert_tbody_row(rows[1], ['Book 2', '2000', '-', '-'])
+        # 件数表示を検証
+        self.assertIn(
+            '全 2 件',
+            self.selenium.find_element_by_xpath(
+                '//form[@id="changelist-form"]/p[@class="paginator"]').text,
+        )
 
         # 追加ボタンが表示されていること
         self.assert_link_is_displayed('addlink')
 
     def test_book_change_list_by_view_only_staff(self):
-        """Bookモデル一覧画面の検証（閲覧用スタッフの場合）"""
+        """Bookモデル一覧画面の画面表示の検証（閲覧用スタッフの場合）"""
 
         # 閲覧用スタッフでログイン
         self.admin_login(self.view_only_staff.username, self.PASSWORD)
