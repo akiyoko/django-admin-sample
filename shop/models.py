@@ -51,7 +51,7 @@ class Book(models.Model):
     publisher = models.ForeignKey(Publisher, verbose_name='出版社', on_delete=models.PROTECT,
                                   null=True, blank=True)
     authors = models.ManyToManyField(Author, verbose_name='著者', blank=True)
-    price = models.PositiveIntegerField('価格', null=True, blank=True, default=0)
+    price = models.PositiveIntegerField('価格', null=True, blank=True)
     size = models.CharField('サイズ', max_length=2, choices=SIZE_CHOICES, null=True, blank=True)
     description = models.TextField('概要', null=True, blank=True)
     publish_date = models.DateField('出版日', null=True, blank=True)

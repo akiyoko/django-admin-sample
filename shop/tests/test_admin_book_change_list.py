@@ -1,15 +1,17 @@
+from datetime import datetime
+
 import lxml.html
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 
-from ..models import Book
+from shop.models import Book
 
 User = get_user_model()
 
 
-class TestAdminBookChangeListView(TestCase):
+class TestAdminBookChangeList(TestCase):
     """Bookモデル一覧画面のユニットテスト"""
 
     TARGET_URL = reverse('admin:shop_book_changelist')
@@ -29,16 +31,16 @@ class TestAdminBookChangeListView(TestCase):
 
         # テストレコードを作成
         self.books = [
-            Book.objects.create(
-                title='Book {}'.format(i + 1),
-                price=(i + 1) * 1000,
-            ) for i in range(2)
+            Book.objects.create(title='Book 1', price=1000, size='a4'),
+            Book.objects.create(title='Book 2', publish_date=datetime(2020, 3, 1)),
         ]
 
-    def test_change_list(self):
+    def test_get_change_list(self):
         """Bookモデル一覧画面への画面遷移（システム管理者の場合）
 
-        画面表示項目を検証する"""
+        - 検索結果一覧の表示内容を検証する
+        - 合計件数の表示メッセージが「全 X 件」となっていることを検証する
+        - 追加ボタンが表示されていることを検証する"""
 
         # システム管理者でログイン
         self.client.login(username=self.superuser.username, password=self.PASSWORD)
@@ -55,17 +57,17 @@ class TestAdminBookChangeListView(TestCase):
         head, rows = self.get_result_list(html)
         self.assert_thead(head, ['ID', 'タイトル', '価格', 'サイズ', '出版日'])
         self.assertEqual(len(rows), 2)
-        self.assert_tbody_row(rows[0], ['Book 1', '1,000 円', '-', '-'])
-        self.assert_tbody_row(rows[1], ['Book 2', '2,000 円', '-', '-'])
-        # 件数表示
+        self.assert_tbody_row(rows[0], ['Book 1', '1,000 円', 'A4 - 210 x 297 mm', '-'])
+        self.assert_tbody_row(rows[1], ['Book 2', '-', '-', '2020年3月1日'])
+        # 合計件数メッセージ
         self.assert_result_count_message(html, '全 2 件')
         # 追加ボタンが表示されていること
         self.assert_link_is_displayed(html, 'addlink')
 
-    def test_change_list_by_view_only_staff(self):
+    def test_get_change_list_by_view_only_staff(self):
         """Bookモデル一覧画面への画面遷移（閲覧用スタッフの場合）
 
-        追加ボタンが表示されていないことを検証する"""
+        - 追加ボタンが表示されていないことを検証する"""
 
         # 閲覧用スタッフでログイン
         self.client.login(
@@ -80,10 +82,10 @@ class TestAdminBookChangeListView(TestCase):
         html = lxml.html.fromstring(response.rendered_content)
         self.assert_link_is_not_displayed(html, 'addlink')
 
-    def test_change_list_by_no_login_user(self):
+    def test_get_change_list_by_no_login_user(self):
         """Bookモデル一覧画面への画面遷移（未ログインの場合）
 
-        ログイン画面にリダイレクトされることを検証する"""
+        - ログイン画面にリダイレクトされることを検証する"""
 
         # Bookのモデル一覧画面に遷移（リダイレクトをともなう場合は follow=True を指定）
         response = self.client.get(self.TARGET_URL, follow=True)
@@ -91,10 +93,10 @@ class TestAdminBookChangeListView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin/login.html')
 
-    def test_change_list_search(self):
+    def test_search_change_list(self):
         """Bookモデル一覧画面で簡易検索
 
-        簡易検索ができることを検証する"""
+        - 簡易検索ができることを検証する"""
 
         # システム管理者でログイン
         self.client.login(username=self.superuser.username, password=self.PASSWORD)
