@@ -32,8 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # 'myadmin.apps.MyadminConfig',
-    'django.contrib.admin',     # 削除
-    # 'config.apps.MyAdminConfig',  # 追加
+    'django.contrib.admin',         # 削除
+    # 'config.apps.CustomAdminConfig',  # 追加
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

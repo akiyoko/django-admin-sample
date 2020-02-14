@@ -56,7 +56,7 @@ class BookModelAdmin(admin.ModelAdmin):
         'id', 'title', 'price', 'size', 'publish_date', 'created_by', 'created_at',
     )
     # exclude = ('publisher',)
-    readonly_fields = ('id', 'title', 'created_by', 'created_at')
+    readonly_fields = ('id', 'created_by', 'created_at')
     form = BookAdminForm
     # inlines = [
     #     BookStockInline,

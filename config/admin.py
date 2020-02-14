@@ -8,7 +8,7 @@ APP_LIST_ORDER = OrderedDict((
 ))
 
 
-class MyAdminSite(AdminSite):
+class CustomAdminSite(AdminSite):
     """AdminSite をカスタマイズしたクラス"""
 
     site_header = '管理サイト'

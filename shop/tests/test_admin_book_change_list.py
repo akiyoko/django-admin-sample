@@ -12,7 +12,7 @@ User = get_user_model()
 
 
 class TestAdminBookChangeList(TestCase):
-    """Bookモデル一覧画面のユニットテスト"""
+    """管理サイトのBookモデル一覧画面のユニットテスト"""
 
     TARGET_URL = reverse('admin:shop_book_changelist')
     PASSWORD = 'pass12345'
@@ -38,9 +38,10 @@ class TestAdminBookChangeList(TestCase):
     def test_get_change_list(self):
         """Bookモデル一覧画面への画面遷移（システム管理者の場合）
 
-        - 検索結果一覧の表示内容を検証する
-        - 合計件数の表示メッセージが「全 X 件」となっていることを検証する
-        - 追加ボタンが表示されていることを検証する"""
+        1) Bookモデル一覧画面に遷移できることを検証する
+        2) 検索結果一覧の表示内容を検証する
+        3) 合計件数メッセージが「全 X 件」と表示されていることを検証する
+        4) 追加ボタンが表示されることを検証する"""
 
         # システム管理者でログイン
         self.client.login(username=self.superuser.username, password=self.PASSWORD)
@@ -57,17 +58,19 @@ class TestAdminBookChangeList(TestCase):
         head, rows = self.get_result_list(html)
         self.assert_thead(head, ['ID', 'タイトル', '価格', 'サイズ', '出版日'])
         self.assertEqual(len(rows), 2)
-        self.assert_tbody_row(rows[0], ['Book 1', '1,000 円', 'A4 - 210 x 297 mm', '-'])
-        self.assert_tbody_row(rows[1], ['Book 2', '-', '-', '2020年3月1日'])
+        self.assert_tbody_row(
+            rows[0], ['Book 1', '1,000 円', 'A4 - 210 x 297 mm', '-'])
+        self.assert_tbody_row(
+            rows[1], ['Book 2', '-', '-', '2020年3月1日'])
         # 合計件数メッセージ
         self.assert_result_count_message(html, '全 2 件')
-        # 追加ボタンが表示されていること
+        # 追加ボタン
         self.assert_link_is_displayed(html, 'addlink')
 
     def test_get_change_list_by_view_only_staff(self):
         """Bookモデル一覧画面への画面遷移（閲覧用スタッフの場合）
 
-        - 追加ボタンが表示されていないことを検証する"""
+        1) 閲覧用スタッフの場合、追加ボタンが表示されないことを検証する"""
 
         # 閲覧用スタッフでログイン
         self.client.login(
@@ -78,14 +81,14 @@ class TestAdminBookChangeList(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin/change_list.html')
 
-        # 追加ボタンが表示されていないこと
+        # 追加ボタンが表示されていないことを検証
         html = lxml.html.fromstring(response.rendered_content)
         self.assert_link_is_not_displayed(html, 'addlink')
 
     def test_get_change_list_by_no_login_user(self):
         """Bookモデル一覧画面への画面遷移（未ログインの場合）
 
-        - ログイン画面にリダイレクトされることを検証する"""
+        2) 未ログインの場合、ログイン画面にリダイレクトされることを検証する"""
 
         # Bookのモデル一覧画面に遷移（リダイレクトをともなう場合は follow=True を指定）
         response = self.client.get(self.TARGET_URL, follow=True)
@@ -139,8 +142,8 @@ class TestAdminBookChangeList(TestCase):
 
     def assert_link_is_displayed(self, html, css_class):
         """リンクが表示されていることを検証する"""
-        self.assertTrue(len(html.xpath('//a[@class="{}"]'.format(css_class))) == 1)
+        self.assertTrue(len(html.xpath('//a[@class="%s"]' % css_class)) == 1)
 
     def assert_link_is_not_displayed(self, html, css_class):
         """リンクが表示されていないことを検証する"""
-        self.assertTrue(len(html.xpath('//a[@class="{}"]'.format(css_class))) == 0)
+        self.assertTrue(len(html.xpath('//a[@class="%s"]' % css_class)) == 0)
