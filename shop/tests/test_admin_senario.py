@@ -7,7 +7,7 @@ from django.contrib.auth.models import Permission
 from selenium import webdriver
 
 try:
-    # chromedriver-binaryのパスを通してくれる
+    # ChromeDriverのパスを通してくれる
     import chromedriver_binary
 except ImportError:
     raise
@@ -53,32 +53,32 @@ class TestAdminSenario(AdminSeleniumTestCase):
             Permission.objects.filter(codename='view_book'))
 
     def test_book_crud(self):
-        """管理サイトのBookモデルのCRUD検証（システム管理者の場合）"""
+        """BookモデルのCRUD検証（システム管理者の場合）"""
 
-        # ログイン画面に遷移
+        # 1) ログイン画面に遷移
         self.selenium.get(self.live_server_url + '/admin/')
         self.wait_page_loaded()
         self.assert_title('ログイン')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # システム管理者でログイン
-        #  -> ダッシュボード画面に遷移
+        # 2) システム管理者でログイン
+        #    -> ダッシュボード画面に遷移
         self.admin_login(self.superuser.username, self.PASSWORD)
         self.assert_title('サイト管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # ダッシュボード画面で「ショップ」リンクを押下
-        #  -> アプリケーションダッシュボード画面に遷移
+        # 3) ダッシュボード画面で「ショップ」リンクを押下
+        #    -> アプリケーションダッシュボード画面に遷移
         self.selenium.find_element_by_link_text('ショップ').click()
         self.wait_page_loaded()
         self.assert_title('ショップ 管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # アプリケーションダッシュボード画面で「本」リンクを押下
-        #  -> Bookモデル一覧画面に遷移
+        # 4) アプリケーションダッシュボード画面で「本」リンクを押下
+        #    -> Bookモデル一覧画面に遷移
         self.selenium.find_element_by_link_text('本').click()
         self.wait_page_loaded()
         self.assert_title('変更する 本 を選択')
@@ -87,16 +87,16 @@ class TestAdminSenario(AdminSeleniumTestCase):
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # Bookモデル一覧画面で「本 を追加」リンクを押下
-        #  -> Bookモデル追加画面に遷移
+        # 5) Bookモデル一覧画面で「本 を追加」リンクを押下
+        #    -> Bookモデル追加画面に遷移
         self.selenium.find_element_by_link_text('本 を追加').click()
         self.wait_page_loaded()
         self.assert_title('本 を追加')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # Bookモデル追加画面で「保存」ボタンを押下
-        #  -> Bookモデル一覧画面に遷移
+        # 6) Bookモデル追加画面で「保存」ボタンを押下
+        #    -> Bookモデル一覧画面に遷移
         self.selenium.find_element_by_name('title').send_keys('Book 1')
         self.selenium.find_element_by_name('price').send_keys('1000')
         self.selenium.find_element_by_xpath(
@@ -112,8 +112,8 @@ class TestAdminSenario(AdminSeleniumTestCase):
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # Bookモデル一覧画面で追加した本のタイトルリンクを押下
-        #  -> Bookモデル変更画面に遷移
+        # 7) Bookモデル一覧画面で追加した本のタイトルリンクを押下
+        #    -> Bookモデル変更画面に遷移
         _, rows = self.get_result_list()
         rows[0].find_element_by_link_text('Book 1').click()
         self.wait_page_loaded()
@@ -121,8 +121,8 @@ class TestAdminSenario(AdminSeleniumTestCase):
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # Bookモデル変更画面で「保存」ボタンを押下
-        #  -> Bookモデル一覧画面に遷移
+        # 8) Bookモデル変更画面で「保存」ボタンを押下
+        #    -> Bookモデル一覧画面に遷移
         self.selenium.find_element_by_name('price').clear()
         self.selenium.find_element_by_name('price').send_keys('2000')
         self.selenium.find_element_by_xpath(
@@ -138,37 +138,38 @@ class TestAdminSenario(AdminSeleniumTestCase):
         self.save_screenshot()
 
     def test_book_crud_by_view_only_staff(self):
-        """管理サイトのBookモデルのCRUD検証（閲覧用スタッフの場合）"""
+        """BookモデルのCRUD検証（閲覧用スタッフの場合）"""
 
-        # ログイン画面に遷移
+        # 1) ログイン画面に遷移
         self.selenium.get(self.live_server_url + '/admin/')
         self.wait_page_loaded()
         self.assert_title('ログイン')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # 閲覧用スタッフでログイン
-        #  -> ダッシュボード画面に遷移
+        # 2) 閲覧用スタッフでログイン
+        #    -> ダッシュボード画面に遷移
         self.admin_login(self.view_only_staff.username, self.PASSWORD)
         self.assert_title('サイト管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # ダッシュボード画面で「ショップ」リンクを押下
-        #  -> アプリケーションダッシュボード画面に遷移
+        # 3) ダッシュボード画面で「ショップ」リンクを押下
+        #    -> アプリケーションダッシュボード画面に遷移
         self.selenium.find_element_by_link_text('ショップ').click()
         self.wait_page_loaded()
         self.assert_title('ショップ 管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # アプリケーションダッシュボード画面で「本」リンクを押下
-        #  -> Bookモデル一覧画面に遷移
+        # 4) アプリケーションダッシュボード画面で「本」リンクを押下
+        #    -> Bookモデル一覧画面に遷移
         self.selenium.find_element_by_link_text('本').click()
         self.wait_page_loaded()
         self.assert_title('表示する本を選択')
         # 「本 を追加」リンクが表示されていないことを検証
-        self.assertTrue(len(self.selenium.find_elements_by_link_text('本 を追加')) == 0)
+        self.assertTrue(
+            len(self.selenium.find_elements_by_link_text('本 を追加')) == 0)
         # スクリーンショットを撮る
         self.save_screenshot()
 
@@ -176,9 +177,10 @@ class TestAdminSenario(AdminSeleniumTestCase):
         """スクリーンショットを撮る
 
         ファイル名は「テストID + (連番).png」
-        shop.tests.test_admin_senario.TestAdminSenario.test_book_crud.png
-        shop.tests.test_admin_senario.TestAdminSenario.test_book_crud (1).png
-        shop.tests.test_admin_senario.TestAdminSenario.test_book_crud (2).png
+        例)
+        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud.png
+        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud (1).png
+        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud (2).png
         """
         if not os.path.exists(self.SCREENSHOT_DIR):
             os.makedirs(self.SCREENSHOT_DIR, exist_ok=True)

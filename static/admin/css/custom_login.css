@@ -1,0 +1,8 @@
+body.login {
+    background: #fff;     /* 背景色を白に変更 */
+}
+
+.login #container {
+    background: #f8f8f8;  /* 背景色をグレーに変更 */
+    margin: 50px auto;    /* 位置を少し上にずらす */
+}

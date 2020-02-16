@@ -88,7 +88,7 @@ class TestAdminBookChangeList(TestCase):
     def test_get_change_list_by_no_login_user(self):
         """Bookモデル一覧画面への画面遷移（未ログインの場合）
 
-        2) 未ログインの場合、ログイン画面にリダイレクトされることを検証する"""
+        1) 未ログインの場合、ログイン画面にリダイレクトされることを検証する"""
 
         # Bookのモデル一覧画面に遷移（リダイレクトをともなう場合は follow=True を指定）
         response = self.client.get(self.TARGET_URL, follow=True)
@@ -99,7 +99,7 @@ class TestAdminBookChangeList(TestCase):
     def test_search_change_list(self):
         """Bookモデル一覧画面で簡易検索
 
-        - 簡易検索ができることを検証する"""
+        1) 簡易検索ができることを検証する"""
 
         # システム管理者でログイン
         self.client.login(username=self.superuser.username, password=self.PASSWORD)

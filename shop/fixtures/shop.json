@@ -64,7 +64,7 @@
     "model": "shop.book",
     "fields": {
       "title": "Django本 その4",
-      "price": 500,
+      "price": 1000,
       "size": "a4",
       "publish_date": "2020-03-01",
       "publisher": "1",

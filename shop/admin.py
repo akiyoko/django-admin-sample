@@ -2,8 +2,8 @@ import csv
 
 from django import forms
 from django.contrib import admin
+from django.db.models import Q
 from django.http import HttpResponse
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
@@ -38,13 +38,10 @@ class BookAdminForm(forms.ModelForm):
 
 class BookModelAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'format_price', 'size', 'publish_date')
-    # list_display = ('id', 'title', 'format_price', 'format_publish_date',
-    #                 'format_image')
     list_display_links = ('id', 'title')
     # list_select_related = ('publisher',)
-    # ordering = ('-publish_date', 'id')
     ordering = ('id',)
-    search_fields = ('title', 'price', 'publish_date',)
+    # search_fields = ('title', 'price', 'publish_date',)
     list_filter = ('size', 'price')
     list_per_page = 10
     list_max_show_all = 1000
@@ -52,21 +49,27 @@ class BookModelAdmin(admin.ModelAdmin):
     actions = ['download_as_csv', 'publish_today']
     # empty_value_display = '(なし)'
 
-    fields = (
-        'id', 'title', 'price', 'size', 'publish_date', 'created_by', 'created_at',
-    )
+    # fields = (
+    #     'id', 'title', 'price', 'size', 'publish_date', 'created_by', 'created_at',
+    # )
     # exclude = ('publisher',)
     readonly_fields = ('id', 'created_by', 'created_at')
     form = BookAdminForm
+
     # inlines = [
     #     BookStockInline,
     # ]
+    # prepopulated_fields = {'description': ('title', 'publish_date', )}
 
     class Media:
         css = {
             'all': ('admin/css/custom_forms.css',)
         }
         # js = ('custom_code.js',)
+
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     return qs.filter(created_by=request.user)
 
     def save_model(self, request, obj, form, change):
         """モデル保存前に処理を追加する"""
@@ -118,18 +121,19 @@ class BookModelAdmin(admin.ModelAdmin):
     format_price.short_description = '価格'
     format_price.admin_order_field = 'price'
 
-    def format_publisher(self, obj):
+    def format_publisher_name(self, obj):
         """出版社のフォーマットを変更する"""
         if obj.publisher is None:
             return None
-        return format_html(
-            '<a href="{}">{}</a>',
-            reverse('admin:shop_publisher_change', args=[obj.publisher.id]),
-            obj.publisher.name,
-        )
+        return obj.publisher.name
+        # return format_html(
+        #     '<a href="{}">{}</a>',
+        #     reverse('admin:shop_publisher_change', args=[obj.publisher.id]),
+        #     obj.publisher.name,
+        # )
 
-    format_publisher.short_description = '出版社'
-    format_publisher.admin_order_field = 'publisher__name'
+    format_publisher_name.short_description = '出版社'
+    format_publisher_name.admin_order_field = 'publisher__name'
 
     def format_publish_date(self, obj):
         """出版日のフォーマットを変更する"""
@@ -156,7 +160,42 @@ class PublisherModelAdmin(admin.ModelAdmin):
     ]
 
 
+class PublishedBook(Book):
+    """本（発売中）モデル"""
+
+    class Meta:
+        proxy = True
+        verbose_name = '本'
+        verbose_name_plural = '本（発売中）'
+
+
+class UnPublishedBook(Book):
+    """本（未発売）モデル"""
+
+    class Meta:
+        proxy = True
+        verbose_name = '本'
+        verbose_name_plural = '本（未発売）'
+
+
+class PublishedBookModelAdmin(BookModelAdmin):
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(publish_date__lte=timezone.now().date())
+
+
+class UnPublishedBookModelAdmin(BookModelAdmin):
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(
+            Q(publish_date__gt=timezone.now().date()) |
+            Q(publish_date__isnull=True)
+        )
+
+
 admin.site.register(Book, BookModelAdmin)
+admin.site.register(PublishedBook, PublishedBookModelAdmin)
+admin.site.register(UnPublishedBook, UnPublishedBookModelAdmin)
 admin.site.register(Author)
-# # admin.site.register(BookStock)
+# admin.site.register(BookStock)
 admin.site.register(Publisher, PublisherModelAdmin)

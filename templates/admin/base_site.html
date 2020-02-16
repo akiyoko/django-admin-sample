@@ -6,6 +6,8 @@
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_base.css' %}">
 {% endblock %}
 
+{% comment %}
 {% block welcome-msg %}
 ようこそ {% firstof user.get_short_name user.get_username %} さん
 {% endblock %}
+{% endcomment %}
