@@ -169,7 +169,7 @@ class PublishedBook(Book):
         verbose_name_plural = '本（発売中）'
 
 
-class UnPublishedBook(Book):
+class UnpublishedBook(Book):
     """本（未発売）モデル"""
 
     class Meta:
@@ -184,7 +184,7 @@ class PublishedBookModelAdmin(BookModelAdmin):
         return qs.filter(publish_date__lte=timezone.now().date())
 
 
-class UnPublishedBookModelAdmin(BookModelAdmin):
+class UnpublishedBookModelAdmin(BookModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(
@@ -195,7 +195,7 @@ class UnPublishedBookModelAdmin(BookModelAdmin):
 
 admin.site.register(Book, BookModelAdmin)
 admin.site.register(PublishedBook, PublishedBookModelAdmin)
-admin.site.register(UnPublishedBook, UnPublishedBookModelAdmin)
+admin.site.register(UnpublishedBook, UnpublishedBookModelAdmin)
 admin.site.register(Author)
 # admin.site.register(BookStock)
 admin.site.register(Publisher, PublisherModelAdmin)

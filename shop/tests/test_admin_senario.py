@@ -7,7 +7,7 @@ from django.contrib.auth.models import Permission
 from selenium import webdriver
 
 try:
-    # ChromeDriverのパスを通してくれる
+    # importすることでChromeDriverのパスを通してくれる
     import chromedriver_binary
 except ImportError:
     raise
@@ -95,7 +95,7 @@ class TestAdminSenario(AdminSeleniumTestCase):
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # 6) Bookモデル追加画面で「保存」ボタンを押下
+        # 6) Bookモデル追加画面で入力内容を変更して「保存」ボタンを押下
         #    -> Bookモデル一覧画面に遷移
         self.selenium.find_element_by_name('title').send_keys('Book 1')
         self.selenium.find_element_by_name('price').send_keys('1000')
