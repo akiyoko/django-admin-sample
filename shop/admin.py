@@ -181,12 +181,14 @@ class UnpublishedBook(Book):
 class PublishedBookModelAdmin(BookModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+        # 出版日が今日の日付以前になっているレコードのみを対象とする
         return qs.filter(publish_date__lte=timezone.now().date())
 
 
 class UnpublishedBookModelAdmin(BookModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+        # 出版日が未来または未設定になっているレコードのみを対象とする
         return qs.filter(
             Q(publish_date__gt=timezone.now().date()) |
             Q(publish_date__isnull=True)
