@@ -11,7 +11,7 @@ class EmployeeInline(admin.StackedInline):
     extra = 1
 
 
-class DepartmentModelAdmin(admin.ModelAdmin):
+class DepartmentAdmin(admin.ModelAdmin):
     inlines = [
         EmployeeInline,
     ]
@@ -25,5 +25,5 @@ class DepartmentModelAdmin(admin.ModelAdmin):
         super().save_formset(request, form, formset, change)
 
 
-admin.site.register(Department, DepartmentModelAdmin)
+admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Employee, UserAdmin)

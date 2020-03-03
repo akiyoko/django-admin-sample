@@ -1,0 +1,5 @@
+.change-list table .field-id {
+  min-width: 10px;
+  max-width: 10px;
+  /*white-space: nowrap;*/
+}

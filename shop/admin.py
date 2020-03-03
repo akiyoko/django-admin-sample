@@ -2,10 +2,14 @@ import csv
 
 from django import forms
 from django.contrib import admin
+from django.db import models
 from django.db.models import Q
+from django.forms import Textarea, TextInput
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
+from import_export import resources
+from import_export.admin import ExportActionMixin
 
 from .models import Author, Book, Publisher, BookStock
 
@@ -16,7 +20,7 @@ class BookInline(admin.TabularInline):
 
 
 class BookStockInline(admin.TabularInline):
-    # OneToOne を持っているモデルもインラインOK
+    # OneToOneField を持っているモデルもインラインOK
     model = BookStock
 
 
@@ -36,25 +40,72 @@ class BookAdminForm(forms.ModelForm):
                 "薄い本は3,000円を超えてはいけません。")
 
 
-class BookModelAdmin(admin.ModelAdmin):
+class BookResource(resources.ModelResource):
+    class Meta:
+        model = Book
+
+
+# class BookAdmin(ExportActionMixin, admin.ModelAdmin):
+class BookAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'format_price', 'size', 'publish_date')
     list_display_links = ('id', 'title')
     # list_select_related = ('publisher',)
     ordering = ('id',)
-    # search_fields = ('title', 'price', 'publish_date',)
-    list_filter = ('size', 'price')
+    search_fields = ('title', 'price', 'publish_date')
     list_per_page = 10
     list_max_show_all = 1000
     # date_hierarchy = 'publish_date'
-    actions = ['download_as_csv', 'publish_today']
+    # list_editable = ('publish_date',)
+    resource_class = BookResource
     # empty_value_display = '(なし)'
+    # autocomplete_fields = ('publisher',)
 
     # fields = (
     #     'id', 'title', 'price', 'size', 'publish_date', 'created_by', 'created_at',
     # )
     # exclude = ('publisher',)
-    readonly_fields = ('id', 'created_by', 'created_at')
+    # readonly_fields = ('id', 'created_by', 'created_at')
     form = BookAdminForm
+
+    # radio_fields = {'size': admin.HORIZONTAL}
+    # formfield_overrides = {
+    #     models.CharField: {'widget': TextInput(attrs={'size': '80'})},
+    #     models.TextField: {
+    #         'widget': Textarea(attrs={'cols': '80', 'rows': '10'}),
+    #     }
+    # }
+
+    class PriceListFilter(admin.SimpleListFilter):
+        """価格で絞り込むためのフィルタークラス"""
+
+        title = '価格'
+        # クエリ文字列のパラメータ名
+        parameter_name = 'price_range'
+
+        def lookups(self, request, model_admin):
+            return (
+                (',1000', '1,000円以下'),
+                ('1000,2000', '1,000円以上 2,000円未満'),
+                ('2000,', '2,000円以上'),
+            )
+
+        def queryset(self, request, queryset):
+            # 絞り込み条件が指定されていない場合は検索条件は変更しない
+            if self.value() is None:
+                return queryset
+            # 値をカンマで分割して、0番目を検索の下限値、1番目を上限値とする
+            price_ranges = self.value().split(',')
+            if price_ranges[0]:
+                # 下限値「以上」の検索条件を付加
+                queryset = queryset.filter(price__gte=price_ranges[0])
+            if price_ranges[1]:
+                # 上限値「未満」の検索条件を付加
+                queryset = queryset.filter(price__lt=price_ranges[1])
+            return queryset
+
+    # list_filter = (PriceListFilter,)
+    list_filter = ('size', PriceListFilter)
+    # list_filter = ('size', 'price')
 
     # inlines = [
     #     BookStockInline,
@@ -63,7 +114,10 @@ class BookModelAdmin(admin.ModelAdmin):
 
     class Media:
         css = {
-            'all': ('admin/css/custom_forms.css',)
+            'all': (
+                'admin/css/changelists_book.css',
+                'admin/css/forms_book.css',
+            )
         }
         # js = ('custom_code.js',)
 
@@ -77,33 +131,47 @@ class BookModelAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
-    # def has_add_permission(self, request):
-    #     return False
-    #
-    # def has_change_permission(self, request, obj=None):
-    #     has_perm = super().has_change_permission(request, obj)
-    #     return has_perm and request.user.email.rpartition('@')[2] == 'example.com'
-    #
+    def has_add_permission(self, request):
+        has_perm = super().has_add_permission(request)
+        return has_perm and request.user.email.rpartition('@')[2] == 'example.com'
+
+    def has_change_permission(self, request, obj=None):
+        has_perm = super().has_change_permission(request, obj)
+        if obj is None:
+            return has_perm
+        else:
+            return has_perm and obj.created_by == request.user
+
     # def has_delete_permission(self, request, obj=None):
-    #     has_perm = super().has_delete_permission(request, obj)
-    #     if obj is None:
-    #         return has_perm
-    #     else:
-    #         return has_perm and obj.created_by == request.user
+    #     return False
 
-    def download_as_csv(self, request, queryset):
-        """選択されたレコードのCSVダウンロードをおこなう"""
-        meta = self.model._meta
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
-        writer = csv.writer(response)
-        field_names = [field.name for field in meta.fields]
-        writer.writerow(field_names)
-        for obj in queryset:
-            writer.writerow([getattr(obj, field) for field in field_names])
-        return response
+    # def has_view_permission(self, request, obj=None):
+    #     return True
 
-    download_as_csv.short_description = 'CSVダウンロード'
+    # def has_module_permission(self, request):
+    #     return request.user.is_superuser or getattr(request.user, 'email', None)
+
+    # actions = ['download_as_various_formats']
+    # actions = ['download_as_csv', 'publish_today']
+
+    def download_as_various_formats(self, request, queryset):
+        return super().export_admin_action(request, queryset)
+
+    download_as_various_formats.short_description = 'データエクスポート'
+
+    # def download_as_csv(self, request, queryset):
+    #     """選択されたレコードのCSVダウンロードをおこなう"""
+    #     meta = self.model._meta
+    #     response = HttpResponse(content_type='text/csv')
+    #     response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+    #     writer = csv.writer(response)
+    #     field_names = [field.name for field in meta.fields]
+    #     writer.writerow(field_names)
+    #     for obj in queryset:
+    #         writer.writerow([getattr(obj, field) for field in field_names])
+    #     return response
+    #
+    # download_as_csv.short_description = 'CSVダウンロード'
 
     def publish_today(self, request, queryset):
         """選択されたレコードの出版日を今日に更新する"""
@@ -154,7 +222,9 @@ class BookModelAdmin(admin.ModelAdmin):
     format_image.empty_value_display = 'No image'
 
 
-class PublisherModelAdmin(admin.ModelAdmin):
+class PublisherAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+
     inlines = [
         BookInline,
     ]
@@ -178,14 +248,14 @@ class UnpublishedBook(Book):
         verbose_name_plural = '本（未発売）'
 
 
-class PublishedBookModelAdmin(BookModelAdmin):
+class PublishedBookAdmin(BookAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         # 出版日が今日の日付以前になっているレコードのみを対象とする
         return qs.filter(publish_date__lte=timezone.now().date())
 
 
-class UnpublishedBookModelAdmin(BookModelAdmin):
+class UnpublishedBookAdmin(BookAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         # 出版日が未来または未設定になっているレコードのみを対象とする
@@ -195,9 +265,9 @@ class UnpublishedBookModelAdmin(BookModelAdmin):
         )
 
 
-admin.site.register(Book, BookModelAdmin)
-admin.site.register(PublishedBook, PublishedBookModelAdmin)
-admin.site.register(UnpublishedBook, UnpublishedBookModelAdmin)
+admin.site.register(Book, BookAdmin)
+admin.site.register(PublishedBook, PublishedBookAdmin)
+admin.site.register(UnpublishedBook, UnpublishedBookAdmin)
 admin.site.register(Author)
 # admin.site.register(BookStock)
-admin.site.register(Publisher, PublisherModelAdmin)
+admin.site.register(Publisher, PublisherAdmin)
