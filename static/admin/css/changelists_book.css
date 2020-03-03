@@ -1,5 +1,11 @@
 .change-list table .field-id {
-  min-width: 10px;
-  max-width: 10px;
-  /*white-space: nowrap;*/
+  max-width: 20px;
+}
+
+.change-list table .field-title {
+  min-width: 120px;
+}
+
+.change-list table .field-format_price {
+  text-align: right;
 }

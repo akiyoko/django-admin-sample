@@ -116,7 +116,7 @@ class BookAdmin(admin.ModelAdmin):
         css = {
             'all': (
                 'admin/css/changelists_book.css',
-                'admin/css/forms_book.css',
+                # 'admin/css/forms_book.css',
             )
         }
         # js = ('custom_code.js',)
