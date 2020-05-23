@@ -4,6 +4,9 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+handler404 = 'common.handlers.handler404'
+handler500 = 'common.handlers.handler500'
+
 # admin.site.site_header = '管理サイト'
 # admin.site.site_title = 'XXプロジェクト'
 # admin.site.index_title = 'ホーム'
@@ -20,7 +23,7 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(),
          name='password_reset_complete'),
 ]
-
+# DEBUG が True の場合に runserver でメディアファイルを配信するための設定
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

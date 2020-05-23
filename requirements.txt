@@ -1,7 +1,10 @@
-Django~=2.2
-Pillow
-django-extensions
-django-debug-toolbar
-selenium
-chromedriver-binary==80.0.3987.16.0
-lxml
+Django==2.2.*
+Pillow==7.1.*
+django-debug-toolbar==2.2.*
+django-extensions==2.2.*
+django-import-export==2.1.*
+lxml==4.5.*
+selenium==3.141.*
+# See your own Chrome version
+# and https://pypi.org/project/chromedriver-binary/#history
+chromedriver-binary==83.0.*

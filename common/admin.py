@@ -42,3 +42,9 @@ class CustomAdminSite(AdminSite):
                 key=lambda x: object_names.index(x['object_name'])
                 if x['object_name'] in object_names else len(object_names)
             )
+
+    def logout(self, request, extra_context=None):
+        # extra_context = extra_context or {}
+        # extra_context['next_page'] = 'admin:login'
+        ret = super().logout(request, extra_context=extra_context)
+        return ret
