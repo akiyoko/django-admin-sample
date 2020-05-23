@@ -1,17 +1,13 @@
-import csv
-
 from django import forms
 from django.contrib import admin
-from django.db import models
 from django.db.models import Q
-from django.forms import Textarea, TextInput
-from django.http import HttpResponse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from import_export import resources
-from import_export.admin import ExportActionMixin
 
-from .models import Author, Book, Publisher, BookStock
+from .models import Author, Book, BookStock, PublishedBook, Publisher, \
+    UnpublishedBook
 
 
 class BookInline(admin.TabularInline):
@@ -84,7 +80,7 @@ class BookAdmin(admin.ModelAdmin):
 
         def lookups(self, request, model_admin):
             return (
-                (',1000', '1,000円以下'),
+                (',1000', '1,000円未満'),
                 ('1000,2000', '1,000円以上 2,000円未満'),
                 ('2000,', '2,000円以上'),
             )
@@ -103,9 +99,7 @@ class BookAdmin(admin.ModelAdmin):
                 queryset = queryset.filter(price__lt=price_ranges[1])
             return queryset
 
-    # list_filter = (PriceListFilter,)
-    list_filter = ('size', PriceListFilter)
-    # list_filter = ('size', 'price')
+    list_filter = ('size', 'price', PriceListFilter)
 
     # inlines = [
     #     BookStockInline,
@@ -131,16 +125,16 @@ class BookAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
-    def has_add_permission(self, request):
-        has_perm = super().has_add_permission(request)
-        return has_perm and request.user.email.rpartition('@')[2] == 'example.com'
-
-    def has_change_permission(self, request, obj=None):
-        has_perm = super().has_change_permission(request, obj)
-        if obj is None:
-            return has_perm
-        else:
-            return has_perm and obj.created_by == request.user
+    # def has_add_permission(self, request):
+    #     has_perm = super().has_add_permission(request)
+    #     return has_perm and request.user.email.rpartition('@')[2] == 'example.com'
+    #
+    # def has_change_permission(self, request, obj=None):
+    #     has_perm = super().has_change_permission(request, obj)
+    #     if obj is None:
+    #         return has_perm
+    #     else:
+    #         return has_perm and obj.created_by == request.user
 
     # def has_delete_permission(self, request, obj=None):
     #     return False
@@ -182,44 +176,53 @@ class BookAdmin(admin.ModelAdmin):
 
     def format_price(self, obj):
         """価格のフォーマットを変更する"""
-        if obj.price is None:
-            return None
-        return '{:,d} 円'.format(obj.price)
+        if obj.price is not None:
+            return '{:,d} 円'.format(obj.price)
 
     format_price.short_description = '価格'
     format_price.admin_order_field = 'price'
 
     def format_publisher_name(self, obj):
         """出版社のフォーマットを変更する"""
-        if obj.publisher is None:
-            return None
-        return obj.publisher.name
-        # return format_html(
-        #     '<a href="{}">{}</a>',
-        #     reverse('admin:shop_publisher_change', args=[obj.publisher.id]),
-        #     obj.publisher.name,
-        # )
+        if obj.publisher is not None:
+            return obj.publisher.name
+            # return format_html(
+            #     '<a href="{}">{}</a>',
+            #     reverse('admin:shop_publisher_change', args=[obj.publisher.id]),
+            #     obj.publisher.name,
+            # )
 
     format_publisher_name.short_description = '出版社'
     format_publisher_name.admin_order_field = 'publisher__name'
 
     def format_publish_date(self, obj):
         """出版日のフォーマットを変更する"""
-        if obj.publish_date is None:
-            return None
-        return obj.publish_date.strftime('%Y/%m/%d')
+        if obj.publish_date is not None:
+            return obj.publish_date.strftime('%Y/%m/%d')
 
     format_publish_date.short_description = '出版日'
     format_publish_date.admin_order_field = 'publish_date'
 
     def format_image(self, obj):
         """画像をHTMLで修飾する"""
-        if not obj.image:
-            return None
-        return format_html('<img src="{}" width="100" />', obj.image.url)
+        if obj.image:
+            return format_html('<img src="{}" width="100" />', obj.image.url)
 
     format_image.short_description = '画像'
     format_image.empty_value_display = 'No image'
+
+    # def format_created_by(self, obj):
+    #     """登録ユーザーのフォーマットを変更する"""
+    #     if obj.created_by:
+    #         return format_html(
+    #             '<a href="{}">{}</a>',
+    #             reverse('admin:auth_user_change', args=[obj.created_by.id]),
+    #             obj.created_by.username,
+    #         )
+    #     return getattr(self.format_created_by, 'empty_value_display',
+    #                    self.get_empty_value_display())
+    #
+    # format_created_by.short_description = '登録ユーザー'
 
 
 class PublisherAdmin(admin.ModelAdmin):
@@ -228,24 +231,6 @@ class PublisherAdmin(admin.ModelAdmin):
     inlines = [
         BookInline,
     ]
-
-
-class PublishedBook(Book):
-    """本（発売中）モデル"""
-
-    class Meta:
-        proxy = True
-        verbose_name = '本'
-        verbose_name_plural = '本（発売中）'
-
-
-class UnpublishedBook(Book):
-    """本（未発売）モデル"""
-
-    class Meta:
-        proxy = True
-        verbose_name = '本'
-        verbose_name_plural = '本（未発売）'
 
 
 class PublishedBookAdmin(BookAdmin):
