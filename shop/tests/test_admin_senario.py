@@ -63,21 +63,21 @@ class TestAdminSenario(AdminSeleniumTestCase):
         self.save_screenshot()
 
         # 2) システム管理者でログイン
-        #    -> ダッシュボード画面に遷移
+        #    -> ホーム画面に遷移
         self.admin_login(self.superuser.username, self.PASSWORD)
         self.assert_title('サイト管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # 3) ダッシュボード画面で「ショップ」リンクを押下
-        #    -> アプリケーションダッシュボード画面に遷移
+        # 3) ホーム画面で「ショップ」リンクを押下
+        #    -> アプリケーションホーム画面に遷移
         self.selenium.find_element_by_link_text('ショップ').click()
         self.wait_page_loaded()
         self.assert_title('ショップ 管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # 4) アプリケーションダッシュボード画面で「本」リンクを押下
+        # 4) アプリケーションホーム画面で「本」リンクを押下
         #    -> Bookモデル一覧画面に遷移
         self.selenium.find_element_by_link_text('本').click()
         self.wait_page_loaded()
@@ -148,21 +148,21 @@ class TestAdminSenario(AdminSeleniumTestCase):
         self.save_screenshot()
 
         # 2) 閲覧用スタッフでログイン
-        #    -> ダッシュボード画面に遷移
+        #    -> ホーム画面に遷移
         self.admin_login(self.view_only_staff.username, self.PASSWORD)
         self.assert_title('サイト管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # 3) ダッシュボード画面で「ショップ」リンクを押下
-        #    -> アプリケーションダッシュボード画面に遷移
+        # 3) ホーム画面で「ショップ」リンクを押下
+        #    -> アプリケーションホーム画面に遷移
         self.selenium.find_element_by_link_text('ショップ').click()
         self.wait_page_loaded()
         self.assert_title('ショップ 管理')
         # スクリーンショットを撮る
         self.save_screenshot()
 
-        # 4) アプリケーションダッシュボード画面で「本」リンクを押下
+        # 4) アプリケーションホーム画面で「本」リンクを押下
         #    -> Bookモデル一覧画面に遷移
         self.selenium.find_element_by_link_text('本').click()
         self.wait_page_loaded()

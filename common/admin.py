@@ -15,13 +15,13 @@ class CustomAdminSite(AdminSite):
     site_url = None
 
     def index(self, request, extra_context=None):
-        """ダッシュボード画面を表示するためのビュー"""
+        """ホーム画面を表示するためのビュー"""
         response = super().index(request, extra_context)
         self._sort_app_list(response.context_data['app_list'])
         return response
 
     def app_index(self, request, app_label, extra_context=None):
-        """アプリケーションダッシュボード画面を表示するためのビュー"""
+        """アプリケーションホーム画面を表示するためのビュー"""
         response = super().app_index(request, app_label, extra_context)
         self._sort_app_list(response.context_data['app_list'])
         return response
