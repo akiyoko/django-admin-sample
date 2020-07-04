@@ -14,6 +14,7 @@ handler500 = 'common.handlers.handler500'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # パスワード再設定用のURLパターンを登録
     path('admin/password_reset/', auth_views.PasswordResetView.as_view(),
          name='admin_password_reset'),
     path('admin/password_reset/done/', auth_views.PasswordResetDoneView.as_view(),

@@ -48,7 +48,8 @@ class Book(models.Model):
     title = models.CharField('タイトル', max_length=255)
     image = models.ImageField('画像', max_length=255, null=True, blank=True)
     publisher = models.ForeignKey(Publisher, verbose_name='出版社',
-                                  on_delete=models.PROTECT, null=True, blank=True)
+                                  on_delete=models.PROTECT,
+                                  null=True, blank=True)
     authors = models.ManyToManyField(Author, verbose_name='著者', blank=True)
     price = models.PositiveIntegerField('価格', null=True, blank=True)
     size = models.CharField('サイズ', max_length=2, choices=SIZE_CHOICES,

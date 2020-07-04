@@ -75,10 +75,11 @@ class BookAdmin(admin.ModelAdmin):
         """価格で絞り込むためのフィルタークラス"""
 
         title = '価格'
-        # クエリ文字列のパラメータ名
+        # クエリ文字列のキー名
         parameter_name = 'price_range'
 
         def lookups(self, request, model_admin):
+            """クエリ文字列として使用する値と表示ラベルのペアを定義"""
             return (
                 (',1000', '1,000円未満'),
                 ('1000,2000', '1,000円以上 2,000円未満'),
