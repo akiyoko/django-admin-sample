@@ -45,21 +45,20 @@ class Book(models.Model):
         (SIZE_B5, 'B5 - 182 x 257 mm'),
     )
 
-    title = models.CharField(verbose_name='タイトル', max_length=255)
-    image = models.ImageField(verbose_name='画像', max_length=255, null=True,
-                              blank=True)
+    title = models.CharField('タイトル', max_length=255)
+    image = models.ImageField('画像', max_length=255, null=True, blank=True)
     publisher = models.ForeignKey(Publisher, verbose_name='出版社',
                                   on_delete=models.PROTECT, null=True, blank=True)
     authors = models.ManyToManyField(Author, verbose_name='著者', blank=True)
-    price = models.PositiveIntegerField(verbose_name='価格', null=True, blank=True)
-    size = models.CharField(verbose_name='サイズ', max_length=2, choices=SIZE_CHOICES,
+    price = models.PositiveIntegerField('価格', null=True, blank=True)
+    size = models.CharField('サイズ', max_length=2, choices=SIZE_CHOICES,
                             null=True, blank=True)
-    description = models.TextField(verbose_name='概要', null=True, blank=True)
-    publish_date = models.DateField(verbose_name='出版日', null=True, blank=True)
+    description = models.TextField('概要', null=True, blank=True)
+    publish_date = models.DateField('出版日', null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name='登録ユーザー',
                                    on_delete=models.SET_NULL,
                                    null=True, blank=True, editable=False)
-    created_at = models.DateTimeField(verbose_name='登録日時', auto_now_add=True)
+    created_at = models.DateTimeField('登録日時', auto_now_add=True)
 
     def __str__(self):
         return self.title
