@@ -1,4 +1,9 @@
 from django.contrib.admin import AdminSite
+from django.template.response import TemplateResponse
+from django.urls import path
+from django.utils import timezone
+
+from shop.models import Book
 
 APP_MODEL_ORDER = (
     ('auth', ('User', 'Group')),
@@ -13,6 +18,22 @@ class CustomAdminSite(AdminSite):
     site_title = 'XXプロジェクト'
     index_title = 'ホーム'
     site_url = None
+
+    def get_urls(self):
+        return [
+            # お知らせ画面のURLパターン
+            path('info/', self.admin_view(self.info_view)),
+        ] + super().get_urls()
+
+    def info_view(self, request):
+        """お知らせ画面を表示するためのビュー"""
+        context = {
+            **self.each_context(request),
+            # 本日の登録件数を表示するための変数
+            'books_created_today': Book.objects.filter(
+                created_at__date=timezone.localdate()),
+        }
+        return TemplateResponse(request, 'admin/info.html', context)
 
     def index(self, request, extra_context=None):
         """ホーム画面を表示するためのビュー"""

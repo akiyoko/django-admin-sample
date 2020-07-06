@@ -72,11 +72,11 @@ class BookAdmin(admin.ModelAdmin):
     # }
 
     class PriceListFilter(admin.SimpleListFilter):
-        """価格で絞り込むためのフィルタークラス"""
+        """価格で絞り込むためのフィルタクラス"""
 
         title = '価格'
         # クエリ文字列のキー名
-        parameter_name = 'price_range'
+        parameter_name = 'prices'
 
         def lookups(self, request, model_admin):
             """クエリ文字列として使用する値と表示ラベルのペアを定義"""
@@ -91,16 +91,17 @@ class BookAdmin(admin.ModelAdmin):
             if self.value() is None:
                 return queryset
             # 値をカンマで分割して、0番目を検索の下限値、1番目を上限値とする
-            price_ranges = self.value().split(',')
-            if price_ranges[0]:
+            prices = self.value().split(',')
+            if prices[0]:
                 # 下限値「以上」の検索条件を付加
-                queryset = queryset.filter(price__gte=price_ranges[0])
-            if price_ranges[1]:
+                queryset = queryset.filter(price__gte=prices[0])
+            if prices[1]:
                 # 上限値「未満」の検索条件を付加
-                queryset = queryset.filter(price__lt=price_ranges[1])
+                queryset = queryset.filter(price__lt=prices[1])
             return queryset
 
-    list_filter = ('size', 'price', PriceListFilter)
+    list_filter = ('size', PriceListFilter)
+    # list_filter = ('size', 'price')
 
     # inlines = [
     #     BookStockInline,
