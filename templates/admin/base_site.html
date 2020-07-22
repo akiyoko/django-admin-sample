@@ -2,12 +2,10 @@
 {% load static %}
 
 {% block extrastyle %}
-{{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_base.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/base_extra.css' %}">
 {% endblock %}
 
-{% comment %}
 {% block welcome-msg %}
-ようこそ {% firstof user.get_short_name user.get_username %} さん
+ようこそ
+<strong>{% firstof user.get_short_name user.get_username %}</strong> さん
 {% endblock %}
-{% endcomment %}

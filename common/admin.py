@@ -15,7 +15,7 @@ class CustomAdminSite(AdminSite):
     """AdminSite をカスタマイズしたクラス"""
 
     site_header = '管理サイト'
-    site_title = 'XXプロジェクト'
+    site_title = 'マイプロジェクト'
     index_title = 'ホーム'
     site_url = None
 
@@ -28,6 +28,7 @@ class CustomAdminSite(AdminSite):
     def info_view(self, request):
         """お知らせ画面を表示するためのビュー"""
         context = {
+            # 共通で利用する変数
             **self.each_context(request),
             # 本日の登録件数を表示するための変数
             'books_created_today': Book.objects.filter(

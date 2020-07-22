@@ -1,0 +1,25 @@
+body.login {
+    background: #fff;   /* 背景色を白に変更 */
+}
+
+.login #container {
+    border: none;       /* 境界線を非表示 */
+    width: 100%;        /* 横幅を100％に広げる */
+    margin: 0;          /* 位置をずらす */
+}
+
+/* 入力フィールド */
+.login .form-row #id_username,
+.login .form-row #id_password {
+    width: 20em;
+}
+
+/* ログインボタン */
+.login .submit-row {
+    padding: 1em 0 0 0;
+}
+
+/* パスワード再設定リンク */
+.login .password-reset-link {
+    text-align: left;
+}

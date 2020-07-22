@@ -118,8 +118,8 @@ class BookAdmin(admin.ModelAdmin):
         # js = ('custom_code.js',)
 
     # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
-    #     return qs.filter(created_by=request.user)
+    #     queryset = super().get_queryset(request)
+    #     return queryset.filter(created_by=request.user)
 
     def save_model(self, request, obj, form, change):
         """モデル保存前に処理を追加する"""
@@ -128,16 +128,17 @@ class BookAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     # def has_add_permission(self, request):
-    #     has_perm = super().has_add_permission(request)
-    #     return has_perm and request.user.email.rpartition('@')[2] == 'example.com'
+    #     # ログインユーザーのメールアドレスのドメインが「example.com」の場合に True
+    #     return request.user.email.rpartition('@')[2] == 'example.com'
     #
     # def has_change_permission(self, request, obj=None):
     #     has_perm = super().has_change_permission(request, obj)
+    #     # モデル変更画面表示時および変更実行時以外では obj の値は None になる
     #     if obj is None:
     #         return has_perm
     #     else:
     #         return has_perm and obj.created_by == request.user
-
+    #
     # def has_delete_permission(self, request, obj=None):
     #     return False
 
@@ -237,17 +238,17 @@ class PublisherAdmin(admin.ModelAdmin):
 
 class PublishedBookAdmin(BookAdmin):
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        # 出版日が今日の日付以前になっているレコードのみを対象とする
-        return qs.filter(publish_date__lte=timezone.now().date())
+        queryset = super().get_queryset(request)
+        # 出版日が今日以前になっているレコードのみを対象とする
+        return queryset.filter(publish_date__lte=timezone.localdate())
 
 
 class UnpublishedBookAdmin(BookAdmin):
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
+        queryset = super().get_queryset(request)
         # 出版日が未来または未設定になっているレコードのみを対象とする
-        return qs.filter(
-            Q(publish_date__gt=timezone.now().date()) |
+        return queryset.filter(
+            Q(publish_date__gt=timezone.localdate()) |
             Q(publish_date__isnull=True)
         )
 
