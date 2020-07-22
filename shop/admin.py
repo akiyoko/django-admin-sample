@@ -133,7 +133,7 @@ class BookAdmin(admin.ModelAdmin):
     #
     # def has_change_permission(self, request, obj=None):
     #     has_perm = super().has_change_permission(request, obj)
-    #     # モデル変更画面表示時および変更実行時以外では obj の値は None になる
+    #     # モデル変更画面表示時および変更実行時以外では obj の値は None
     #     if obj is None:
     #         return has_perm
     #     else:

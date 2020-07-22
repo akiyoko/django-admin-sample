@@ -7,27 +7,21 @@ from django.test import TestCase
 from django.urls import reverse
 
 from shop.models import Book
+from .helpers import TestAdminChangeListMixin
 
 User = get_user_model()
 
 
-class TestAdminBookChangeList(TestCase):
-    """管理サイトのBookモデル一覧画面のユニットテスト"""
+class TestAdminBookChangeList(TestAdminChangeListMixin, TestCase):
+    """管理サイトのBookモデル一覧画面のユニットテスト（システム管理者の場合）"""
 
     TARGET_URL = reverse('admin:shop_book_changelist')
     PASSWORD = 'pass12345'
 
     def setUp(self):
-        # テストユーザーを作成
-        # システム管理者
-        self.superuser = User.objects.create_superuser(
+        # テストユーザー（システム管理者）を作成
+        self.user = User.objects.create_superuser(
             'admin', 'admin@example.com', self.PASSWORD)
-        # 閲覧用スタッフ
-        self.view_only_staff = User.objects.create_user(
-            'view_only_staff', 'view_only_staff@example.com', self.PASSWORD,
-            is_staff=True)
-        self.view_only_staff.user_permissions.set(
-            Permission.objects.filter(codename='view_book'))
 
         # テストレコードを作成
         self.books = [
@@ -43,8 +37,8 @@ class TestAdminBookChangeList(TestCase):
         3) 合計件数メッセージが「全 X 件」と表示されていることを検証する
         4) 追加ボタンが表示されることを検証する"""
 
-        # システム管理者でログイン
-        self.client.login(username=self.superuser.username, password=self.PASSWORD)
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
         # Bookのモデル一覧画面に遷移
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
@@ -64,17 +58,78 @@ class TestAdminBookChangeList(TestCase):
             rows[1], ['Book 2', '-', '-', '2020年3月1日'])
         # 合計件数メッセージ
         self.assert_result_count_message(html, '全 2 件')
+        # アクション一覧
+        self.assert_actions(html, ['---------', '選択された 本 の削除'])
         # 追加ボタン
         self.assert_link_is_displayed(html, 'addlink')
 
-    def test_get_change_list_by_view_only_staff(self):
+    def test_get_change_list_if_no_result(self):
+        """Bookモデルのモデル一覧画面で検索結果が0件（システム管理者の場合）
+        """
+        # テストデータを削除しておく
+        for book in self.books:
+            book.delete()
+
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
+        # Bookのモデル一覧画面に遷移
+        response = self.client.get(self.TARGET_URL)
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'admin/change_list.html')
+        self.assertEqual(response.context_data['cl'].result_count, 0)
+
+        # 画面表示項目を検証
+        html = lxml.html.fromstring(response.rendered_content)
+        # 検索結果一覧
+        head, rows = self.get_result_list(html)
+        self.assertEqual(head, None)
+        self.assertEqual(len(rows), 0)
+
+    def test_search_change_list(self):
+        """Bookモデル一覧画面で簡易検索
+
+        1) 簡易検索ができることを検証する"""
+
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
+        # Bookのモデル一覧画面で簡易検索を実行
+        response = self.client.get(self.TARGET_URL + '?q=1000')
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'admin/change_list.html')
+        self.assertEqual(response.context_data['cl'].result_count, 1)
+
+    # ...（略）...
+
+
+class TestAdminBookChangeListByStaff(TestAdminChangeListMixin, TestCase):
+    """管理サイトのBookモデル一覧画面のユニットテスト（閲覧スタッフの場合）"""
+
+    TARGET_URL = reverse('admin:shop_book_changelist')
+    PASSWORD = 'pass12345'
+
+    def setUp(self):
+        # テストユーザー（閲覧スタッフ）を作成
+        self.user = User.objects.create_user(
+            'view_only_staff', 'view_only_staff@example.com', self.PASSWORD,
+            is_staff=True)
+        self.user.user_permissions.set(
+            Permission.objects.filter(codename='view_book'))
+
+        # テストレコードを作成
+        self.books = [
+            Book.objects.create(title='Book 1', price=1000, size='a4'),
+            Book.objects.create(title='Book 2', publish_date=datetime(2020, 3, 1)),
+        ]
+
+    def test_get_change_list(self):
         """Bookモデル一覧画面への画面遷移（閲覧用スタッフの場合）
 
         1) 閲覧用スタッフの場合、追加ボタンが表示されないことを検証する"""
 
-        # 閲覧用スタッフでログイン
-        self.client.login(
-            username=self.view_only_staff.username, password=self.PASSWORD)
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
         # Bookのモデル一覧画面に遷移
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
@@ -85,7 +140,22 @@ class TestAdminBookChangeList(TestCase):
         html = lxml.html.fromstring(response.rendered_content)
         self.assert_link_is_not_displayed(html, 'addlink')
 
-    def test_get_change_list_by_no_login_user(self):
+    # ...（略）...
+
+
+class TestAdminBookChangeListByNoLoginUser(TestAdminChangeListMixin, TestCase):
+    """管理サイトのBookモデル一覧画面のユニットテスト（未ログインの場合）"""
+
+    TARGET_URL = reverse('admin:shop_book_changelist')
+
+    def setUp(self):
+        # テストレコードを作成
+        self.books = [
+            Book.objects.create(title='Book 1', price=1000, size='a4'),
+            Book.objects.create(title='Book 2', publish_date=datetime(2020, 3, 1)),
+        ]
+
+    def test_get_change_list(self):
         """Bookモデル一覧画面への画面遷移（未ログインの場合）
 
         1) 未ログインの場合、ログイン画面にリダイレクトされることを検証する"""
@@ -96,54 +166,4 @@ class TestAdminBookChangeList(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin/login.html')
 
-    def test_search_change_list(self):
-        """Bookモデル一覧画面で簡易検索
-
-        1) 簡易検索ができることを検証する"""
-
-        # システム管理者でログイン
-        self.client.login(username=self.superuser.username, password=self.PASSWORD)
-        # Bookのモデル一覧画面で簡易検索を実行
-        response = self.client.get(self.TARGET_URL + '?q=1000')
-        # レスポンスを検証
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'admin/change_list.html')
-        self.assertEqual(response.context_data['cl'].result_count, 1)
-
     # ...（略）...
-
-    def get_result_list(self, html):
-        """検索結果テーブルの要素を取得する"""
-        table = html.xpath('//table[@id="result_list"]')[0]
-        head = table.xpath('thead/tr')[0]
-        rows = table.xpath('tbody/tr')
-        return head, rows
-
-    def assert_thead(self, head, expected_texts):
-        """検索結果テーブルのヘッダを検証する"""
-        head_texts = [
-            e.text_content() for e in
-            head.xpath('th[contains(@class, "column-")]/div[@class="text"]')
-        ]
-        self.assertListEqual(head_texts, expected_texts)
-
-    def assert_tbody_row(self, row, expected_texts):
-        """検索結果テーブルのレコード行を検証する"""
-        row_texts = [
-            e.text_content() for e in
-            row.xpath('td[contains(@class, "field-")]')
-        ]
-        self.assertListEqual(row_texts, expected_texts)
-
-    def assert_result_count_message(self, html, message):
-        """合計件数のメッセージを検証する"""
-        self.assertIn(message, html.xpath(
-            '//form[@id="changelist-form"]/p[@class="paginator"]')[0].text)
-
-    def assert_link_is_displayed(self, html, css_class):
-        """リンクが表示されていることを検証する"""
-        self.assertTrue(len(html.xpath('//a[@class="%s"]' % css_class)) == 1)
-
-    def assert_link_is_not_displayed(self, html, css_class):
-        """リンクが表示されていないことを検証する"""
-        self.assertTrue(len(html.xpath('//a[@class="%s"]' % css_class)) == 0)

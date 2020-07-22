@@ -7,4 +7,4 @@ lxml==4.5.*
 selenium==3.141.*
 # See your own Chrome version
 # and https://pypi.org/project/chromedriver-binary/#history
-chromedriver-binary==83.0.*
+chromedriver-binary==84.*

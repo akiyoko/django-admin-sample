@@ -13,34 +13,18 @@ except ImportError:
     raise
 
 from shop.models import Book
+from .helpers import TestAdminSenarioMixin
 
 User = get_user_model()
 
 
-class TestAdminSenario(AdminSeleniumTestCase):
+class TestAdminSenario(TestAdminSenarioMixin, AdminSeleniumTestCase):
     """管理サイトのシナリオテスト"""
 
-    # スクリーンショットを保存するディレクトリ
-    SCREENSHOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                  'screenshots')
-    PASSWORD = 'secret'
-
-    available_apps = None
-    browser = 'chrome'
-
-    @classmethod
-    def create_webdriver(cls):
-        """Chrome用のWebDriverインスタンスを作成する"""
-        chrome_options = webdriver.ChromeOptions()
-        # ヘッドレスモード
-        chrome_options.add_argument('--headless')
-        return webdriver.Chrome(chrome_options=chrome_options)
+    PASSWORD = 'pass12345'
 
     def setUp(self):
         super().setUp()
-        # 前回のスクリーンショットを削除しておく
-        self.cleanup_screenshots()
-
         # テストユーザーを作成
         # システム管理者
         self.superuser = User.objects.create_superuser(
@@ -65,7 +49,7 @@ class TestAdminSenario(AdminSeleniumTestCase):
         # 2) システム管理者でログイン
         #    -> ホーム画面に遷移
         self.admin_login(self.superuser.username, self.PASSWORD)
-        self.assert_title('サイト管理')
+        self.assert_title('ホーム')
         # スクリーンショットを撮る
         self.save_screenshot()
 
@@ -150,7 +134,7 @@ class TestAdminSenario(AdminSeleniumTestCase):
         # 2) 閲覧用スタッフでログイン
         #    -> ホーム画面に遷移
         self.admin_login(self.view_only_staff.username, self.PASSWORD)
-        self.assert_title('サイト管理')
+        self.assert_title('ホーム')
         # スクリーンショットを撮る
         self.save_screenshot()
 
@@ -172,42 +156,3 @@ class TestAdminSenario(AdminSeleniumTestCase):
             len(self.selenium.find_elements_by_link_text('本 を追加')) == 0)
         # スクリーンショットを撮る
         self.save_screenshot()
-
-    def save_screenshot(self):
-        """スクリーンショットを撮る
-
-        ファイル名は「テストID + (連番).png」
-        例)
-        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud.png
-        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud (1).png
-        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud (2).png
-        """
-        if not os.path.exists(self.SCREENSHOT_DIR):
-            os.makedirs(self.SCREENSHOT_DIR, exist_ok=True)
-
-        filename = '{}.png'.format(self.id())
-        i = 0
-        while os.path.exists(os.path.join(self.SCREENSHOT_DIR, filename)):
-            i += 1
-            filename = '{} ({}).png'.format(self.id(), i)
-        self.selenium.save_screenshot(os.path.join(self.SCREENSHOT_DIR, filename))
-
-    def cleanup_screenshots(self):
-        """ファイル名が「テストID + (連番).png」のスクリーンショットを削除する"""
-        for f in glob('{}/{}.png'.format(self.SCREENSHOT_DIR, self.id())):
-            os.remove(f)
-        for f in glob('{}/{} ([0-9]*).png'.format(self.SCREENSHOT_DIR, self.id())):
-            os.remove(f)
-
-    def get_result_list(self):
-        """検索結果テーブルの要素を取得する"""
-        if not self.selenium.find_elements_by_id('result_list'):
-            return None, []
-        table = self.selenium.find_element_by_id('result_list')
-        head = table.find_element_by_xpath('thead/tr')
-        rows = table.find_elements_by_xpath('tbody/tr')
-        return head, rows
-
-    def assert_title(self, text):
-        """タイトルを検証する"""
-        self.assertEqual(self.selenium.title.split(' | ')[0], text)
