@@ -74,8 +74,7 @@ class PublishedBook(Book):
 
     class Meta:
         proxy = True
-        verbose_name = '本'
-        verbose_name_plural = '本（発売中）'
+        verbose_name = verbose_name_plural = '本（発売中）'
 
 
 class UnpublishedBook(Book):
@@ -83,8 +82,7 @@ class UnpublishedBook(Book):
 
     class Meta:
         proxy = True
-        verbose_name = '本'
-        verbose_name_plural = '本（未発売）'
+        verbose_name = verbose_name_plural = '本（未発売）'
 
 
 class BookStock(models.Model):

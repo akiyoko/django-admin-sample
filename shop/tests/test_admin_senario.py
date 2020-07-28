@@ -1,24 +1,14 @@
-import os
-from glob import glob
-
 from django.contrib.admin.tests import AdminSeleniumTestCase
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from selenium import webdriver
 
-try:
-    # importすることでChromeDriverのパスを通してくれる
-    import chromedriver_binary
-except ImportError:
-    raise
-
-from shop.models import Book
-from .helpers import TestAdminSenarioMixin
+from ..models import Book
+from .selenium_helpers import SeleniumTestMixin
 
 User = get_user_model()
 
 
-class TestAdminSenario(TestAdminSenarioMixin, AdminSeleniumTestCase):
+class TestAdminSenario(SeleniumTestMixin, AdminSeleniumTestCase):
     """管理サイトのシナリオテスト"""
 
     PASSWORD = 'pass12345'
