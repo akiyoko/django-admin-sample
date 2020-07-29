@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -29,13 +29,13 @@ class TestAdminBookChangeList(TestCase):
                 title='Book 1',
                 price=1000,
                 size='a4',
-                publish_date=datetime(2020, 1, 1)
+                publish_date=date(2020, 1, 1)
             ),
             Book.objects.create(
                 title='Book 2',
                 price=2000,
                 size='b5',
-                publish_date=datetime(2020, 2, 1)
+                publish_date=date(2020, 2, 1)
             ),
             Book.objects.create(
                 title='Book 3'
@@ -190,7 +190,7 @@ class TestAdminBookChangeListByViewStaff(TestCase):
                 title='Book 1',
                 price=1000,
                 size='a4',
-                publish_date=datetime(2020, 1, 1)
+                publish_date=date(2020, 1, 1)
             ),
         ]
 
