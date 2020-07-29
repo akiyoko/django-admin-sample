@@ -6,13 +6,13 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .lxml_helpers import ChangeListPage
-from ..models import Book
+from ..models import Book, Author, Publisher
 
 User = get_user_model()
 
 
 class TestAdminBookChangeList(TestCase):
-    """管理サイトのBookモデル一覧画面のテスト（システム管理者の場合）"""
+    """管理サイトのBookモデル一覧画面のユニットテスト（システム管理者の場合）"""
 
     TARGET_URL = reverse('admin:shop_book_changelist')
     PASSWORD = 'pass12345'
@@ -24,26 +24,43 @@ class TestAdminBookChangeList(TestCase):
 
     def create_books(self):
         # テストレコードを作成
+        self.publisher = Publisher.objects.create(name='自費出版社')
+        # self.author = Author.objects.create(name='akiyoko')
         self.books = [
             Book.objects.create(
-                title='Book 1',
+                title='Django Book 1',
                 price=1000,
                 size='a4',
-                publish_date=date(2020, 1, 1)
+                publish_date=date(2020, 9, 1),
+                publisher=self.publisher,
             ),
             Book.objects.create(
-                title='Book 2',
+                title='Django Book 2',
                 price=2000,
                 size='b5',
-                publish_date=date(2020, 2, 1)
+                publish_date=date(2020, 10, 1),
+                # TODO
+                # TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use authors.set() instead.
+                # authors=[self.author],
             ),
             Book.objects.create(
-                title='Book 3'
+                title='Book 3',
             ),
         ]
 
-    def test_show_page_if_result_list_is_empty(self):
-        """Bookモデル一覧画面への画面遷移（検索結果が0件）
+    def test_show_page(self):
+        """Bookモデル一覧画面の画面表示"""
+
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
+        # Bookモデル一覧画面に遷移
+        response = self.client.get(self.TARGET_URL)
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'admin/change_list.html')
+
+    def test_show_page_for_items_if_result_list_is_empty(self):
+        """Bookモデル一覧画面の画面項目検証（検索結果が0件）
 
         画面項目の確認
         - Bookモデル一覧画面に遷移できることを検証する
@@ -68,12 +85,13 @@ class TestAdminBookChangeList(TestCase):
         # 絞り込み（フィルタ）が表示されていること
         self.assertIsNotNone(page.filter)
         # アクション一覧が表示されていないこと
-        self.assertIsNone(page.action_list)
+        self.assertIsNone(page.action_list_texts)
         # 検索結果表示テーブルが表示されていないこと
         self.assertIsNone(page.result_list)
 
-    def test_show_page_if_result_list_is_not_empty(self):
-        """Bookモデル一覧画面への画面遷移（検索結果が0件でない）"""
+    def test_show_page_for_items_if_result_list_is_not_empty(self):
+        """Bookモデル一覧画面の画面項目検証（検索結果が0件でない）"""
+
         # テストデータを作成
         self.create_books()
         # ログイン
@@ -104,11 +122,11 @@ class TestAdminBookChangeList(TestCase):
         self.assertEqual(len(page.result_list_rows_texts), 3)
         self.assertEqual(
             page.result_list_rows_texts[0],
-            ['Book 1', '1,000 円', 'A4 - 210 x 297 mm', '2020年1月1日']
+            ['Django Book 1', '1,000 円', 'A4 - 210 x 297 mm', '2020年9月1日']
         )
         self.assertEqual(
             page.result_list_rows_texts[1],
-            ['Book 2', '2,000 円', 'B5 - 182 x 257 mm', '2020年2月1日']
+            ['Django Book 2', '2,000 円', 'B5 - 182 x 257 mm', '2020年10月1日']
         )
         self.assertEqual(
             page.result_list_rows_texts[2],
@@ -119,28 +137,45 @@ class TestAdminBookChangeList(TestCase):
 
     def test_search(self):
         """Bookモデル一覧画面で簡易検索"""
+
         # テストデータを作成
         self.create_books()
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
         # Bookモデル一覧画面で簡易検索を実行
-        # タイトルで検索できること
-        response = self.client.get(self.TARGET_URL + '?q=Book')
+        # タイトルで簡易検索できること
+        response = self.client.get(self.TARGET_URL + '?q=Django')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin/change_list.html')
-        self.assertEqual(response.context_data['cl'].result_count, 3)
+        self.assertEqual(response.context_data['cl'].result_count, 2)
 
-        # 価格で検索できること
-        response = self.client.get(self.TARGET_URL + '?q=100')
+        # 価格で簡易検索できること
+        response = self.client.get(self.TARGET_URL + '?q=1000')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin/change_list.html')
         self.assertEqual(response.context_data['cl'].result_count, 1)
 
+        # 出版社名で簡易検索できること
+        response = self.client.get(self.TARGET_URL + '?q=自費出版社')
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'admin/change_list.html')
+        self.assertEqual(response.context_data['cl'].result_count, 1)
+
+        # TODO
+        # # 著者名で簡易検索できること
+        # response = self.client.get(self.TARGET_URL + '?q=akiyoko')
+        # # レスポンスを検証
+        # self.assertEqual(response.status_code, 200)
+        # self.assertTemplateUsed(response, 'admin/change_list.html')
+        # self.assertEqual(response.context_data['cl'].result_count, 1)
+
     def test_filter_by_size(self):
         """Bookモデル一覧画面でサイズで絞り込む"""
+
         # テストデータを作成
         self.create_books()
         # ログイン
@@ -155,6 +190,7 @@ class TestAdminBookChangeList(TestCase):
 
     def test_filter_by_prices(self):
         """Bookモデル一覧画面で価格で絞り込む"""
+
         # テストデータを作成
         self.create_books()
         # ログイン
@@ -171,7 +207,7 @@ class TestAdminBookChangeList(TestCase):
 
 
 class TestAdminBookChangeListByViewStaff(TestCase):
-    """管理サイトのBookモデル一覧画面のテスト（閲覧専用スタッフの場合）"""
+    """管理サイトのBookモデル一覧画面のユニットテスト（閲覧専用スタッフの場合）"""
 
     TARGET_URL = reverse('admin:shop_book_changelist')
     PASSWORD = 'pass12345'
@@ -179,25 +215,20 @@ class TestAdminBookChangeListByViewStaff(TestCase):
     def setUp(self):
         # テストユーザー（閲覧専用スタッフ）を作成
         self.user = User.objects.create_user(
-            'view_only_staff', 'view_only_staff@example.com', self.PASSWORD,
-            is_staff=True)
+            'staff', 'staff@example.com', self.PASSWORD, is_staff=True)
         self.user.user_permissions.set(
             Permission.objects.filter(codename='view_book'))
 
         # テストデータを作成
         self.books = [
-            Book.objects.create(
-                title='Book 1',
-                price=1000,
-                size='a4',
-                publish_date=date(2020, 1, 1)
-            ),
+            Book.objects.create(title='Book 1'),
         ]
 
-    def test_page_items(self):
+    def test_show_page(self):
         """Bookモデル一覧画面への画面遷移
 
         - 追加ボタンが表示されないことを検証する"""
+
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
@@ -216,7 +247,7 @@ class TestAdminBookChangeListByViewStaff(TestCase):
         # 絞り込み（フィルタ）が表示されていること
         self.assertIsNotNone(page.filter)
         # アクション一覧が表示されていないこと
-        self.assertIsNone(page.action_list)
+        self.assertIsNone(page.action_list_texts)
         # 検索結果表示テーブルが表示されていること
         self.assertIsNotNone(page.result_list)
 
@@ -224,14 +255,15 @@ class TestAdminBookChangeListByViewStaff(TestCase):
 
 
 class TestAdminBookChangeListByAnonymousUser(TestCase):
-    """管理サイトのBookモデル一覧画面のテスト（未ログインユーザーの場合）"""
+    """管理サイトのBookモデル一覧画面のユニットテスト（未ログインユーザーの場合）"""
 
     TARGET_URL = reverse('admin:shop_book_changelist')
 
-    def test_get_change_list(self):
+    def test_show_page(self):
         """Bookモデル一覧画面への画面遷移
 
         - ログイン画面にリダイレクトされることを検証する"""
+
         # Bookモデル一覧画面に遷移（リダイレクトをともなう場合は follow=True を指定）
         response = self.client.get(self.TARGET_URL, follow=True)
         # レスポンスを検証

@@ -1,5 +1,4 @@
 import lxml.html
-from django.test import TestCase
 
 
 class ChangeListPage:
@@ -10,7 +9,7 @@ class ChangeListPage:
 
     @property
     def result_list(self):
-        """検索結果表示テーブルの要素オブジェクト"""
+        """検索結果表示テーブルのHTMLElementオブジェクト"""
         elements = self.parsed_content.xpath('//table[@id="result_list"]')
         return elements[0] if elements else None
 
@@ -44,41 +43,33 @@ class ChangeListPage:
         return elements[0].text.strip() if elements else None
 
     @property
-    def action_list(self):
-        """アクション一覧の要素オブジェクト"""
-        elements = self.parsed_content.xpath(
-            '//form[@id="changelist-form"]/div[@class="actions"]')
-        return elements[0] if elements else None
-
-    @property
     def action_list_texts(self):
-        """アクション一覧の表示内容"""
-        if self.action_list is None:
-            return None
-        elements = self.action_list.xpath('//select/option')
-        return [e.text for e in elements]
+        """アクション一覧の選択肢の表示内容"""
+        elements = self.parsed_content.xpath(
+            '//form[@id="changelist-form"]/div[@class="actions"]//select/option')
+        return [e.text for e in elements] if elements else None
 
     @property
     def add_button(self):
-        """追加ボタンの要素オブジェクト"""
+        """追加ボタンのHTMLElementオブジェクト"""
         elements = self.parsed_content.xpath('//a[@class="addlink"]')
         return elements[0] if elements else None
 
     @property
     def search_form(self):
-        """簡易検索フォームの要素オブジェクト"""
+        """簡易検索フォームのHTMLElementオブジェクト"""
         elements = self.parsed_content.xpath('//form[@id="changelist-search"]')
         return elements[0] if elements else None
 
     @property
     def filter(self):
-        """絞り込み（フィルタ）の要素オブジェクト"""
+        """絞り込み（フィルタ）のHTMLElementオブジェクト"""
         elements = self.parsed_content.xpath('//div[@id="changelist-filter"]')
         return elements[0] if elements else None
 
     @property
     def filter_headers(self):
-        """絞り込み（フィルタ）の h3タイトルの表示内容"""
+        """絞り込み（フィルタ）のh3タイトルの表示内容"""
         if self.filter is None:
             return None
         filter_headers = self.filter.xpath('/h3')
@@ -96,7 +87,7 @@ class ChangeListPage:
 
     @property
     def success_message(self):
-        """成功メッセージ"""
+        """成功メッセージの表示内容"""
         elements = self.parsed_content.xpath(
             '//ul[@class="messagelist"]/li[@class="success"]')
         return elements[0].text_content() if elements else None
