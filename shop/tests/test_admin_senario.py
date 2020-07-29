@@ -42,17 +42,17 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
     def save_screenshot(self):
         """スクリーンショットを撮る
 
-        ファイル名は「<テストID>_(<連番>).png」
+        ファイル名は「<テストID>_(<2からの連番>).png」
         例)
         - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud.png
-        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud_(1).png
         - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud_(2).png
+        - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud_(3).png
         """
         if not os.path.exists(self.SCREENSHOT_DIR):
             os.makedirs(self.SCREENSHOT_DIR, exist_ok=True)
 
         filename = '{}.png'.format(self.id())
-        i = 0
+        i = 1
         while os.path.exists(os.path.join(self.SCREENSHOT_DIR, filename)):
             i += 1
             filename = '{}_({}).png'.format(self.id(), i)
@@ -178,7 +178,8 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # スクリーンショット（8枚目）を撮る
         self.save_screenshot()
 
-        # 9) Bookモデル一覧画面で追加した本にチェックを入れて削除
+        # 9) Bookモデル一覧画面で追加した本のチェックボックスを選択し、
+        #    アクション一覧から「選択された 本 の削除」を選択して「実行」ボタンを押下
         rows = self.get_result_list_rows()
         rows[0].find_element_by_xpath('//input[@type="checkbox"]').click()
         self.selenium.find_element_by_xpath(
@@ -188,6 +189,10 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
             '//form[@id="changelist-form"]//button[@type="submit"]').click()
         # Bookモデル削除確認画面が表示されていることを確認
         self.assert_title('よろしいですか？')
+        # スクリーンショット（9枚目）を撮る
+        self.save_screenshot()
+
+        # 10) Bookモデル削除確認画面で「はい」ボタンを押下
         self.selenium.find_element_by_xpath(
             '//input[@value="%s"]' % 'はい').click()
         self.wait_page_loaded()
@@ -197,7 +202,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         self.assertEqual(rows, None)
         # レコードが削除されていることを確認
         self.assertFalse(Book.objects.filter(title='Book 1').exists())
-        # スクリーンショット（9枚目）を撮る
+        # スクリーンショット（10枚目）を撮る
         self.save_screenshot()
 
 
