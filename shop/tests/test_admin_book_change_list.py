@@ -42,14 +42,14 @@ class TestAdminBookChangeList(TestCase):
         self.book = Book.objects.create(
             title='Django Book 1',
             price=1000,
-            size='a4',
+            size=Book.SIZE_A4,
             publish_date=date(2020, 1, 1),
             publisher=self.publisher,
         )
         self.book2 = Book.objects.create(
             title='Django Book 2',
             price=2000,
-            size='b5',
+            size=Book.SIZE_B5,
             publish_date=date(2020, 2, 1),
         )
         self.book2.authors.set([self.author])
@@ -61,6 +61,7 @@ class TestAdminBookChangeList(TestCase):
 
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
+
         # モデル一覧画面に遷移するためのリクエストを実行
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
@@ -80,12 +81,11 @@ class TestAdminBookChangeList(TestCase):
         """
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
+
         # モデル一覧画面に遷移するためのリクエストを実行
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'admin/change_list.html')
-
         # 画面表示項目を検証
         page = ChangeListPage(response.rendered_content)
         # 追加ボタンが表示されていることを確認
@@ -116,9 +116,6 @@ class TestAdminBookChangeList(TestCase):
         """モデル一覧画面の画面項目検証（検索結果が0件でない場合）
 
         以下の画面項目を確認する
-        ・追加ボタンが表示されていること
-        ・簡易検索フォームが表示されていること
-        ・絞り込み（フィルタ）が表示されていること
         ・アクション一覧が表示されていること
         ・検索結果表示テーブルが表示されていること
         ・合計件数が「全 n 件」と表示されていること
@@ -132,7 +129,6 @@ class TestAdminBookChangeList(TestCase):
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'admin/change_list.html')
 
         # 画面表示項目を検証
         page = ChangeListPage(response.rendered_content)
@@ -168,6 +164,80 @@ class TestAdminBookChangeList(TestCase):
         )
         # 合計件数
         self.assertEqual(page.result_count_text, '全 3 件')
+
+    def test_page_items_for_pagination(self):
+        """モデル一覧画面のページネーション検証（全件数が「list_max_show_all」以下の場合）
+
+        以下の画面項目を確認する
+        ・検索結果表示テーブルの1ページあたりの表示件数が10件になっていること
+        ・ページネーションに「全件表示」が表示されていること
+        """
+        # テストデータを作成
+        for i in range(1000):
+            Book.objects.create(title='Book {}'.format(i + 1))
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
+
+        # モデル一覧画面に遷移するためのリクエストを実行
+        response = self.client.get(self.TARGET_URL)
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        # 画面表示項目を検証
+        page = ChangeListPage(response.rendered_content)
+        # 検索結果表示テーブル
+        self.assertEqual(len(page.result_list_rows_texts), 10)
+        # ページネーションの表示内容
+        self.assertEqual(page.result_count_text, '全 1000 件')
+        self.assertEqual(page.paginator_this_page_text, '1')
+        self.assertEqual(
+            page.paginator_link_texts,
+            ['2', '3', '4', '99', '100', '全件表示']
+        )
+
+        # 2ページ目に遷移するためのリクエストを実行
+        response = self.client.get(self.TARGET_URL + '?p=1')
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        # 画面表示項目を検証
+        page = ChangeListPage(response.rendered_content)
+        # 検索結果表示テーブル
+        self.assertEqual(len(page.result_list_rows_texts), 10)
+        # ページネーションの表示内容
+        self.assertEqual(page.result_count_text, '全 1000 件')
+        self.assertEqual(page.paginator_this_page_text, '2')
+        self.assertEqual(
+            page.paginator_link_texts,
+            ['1', '3', '4', '5', '99', '100', '全件表示']
+        )
+
+    def test_page_items_for_pagination_if_over_list_max_show_all(self):
+        """モデル一覧画面のページネーション検証（全件数が「list_max_show_all」超えの場合）
+
+        以下の画面項目を確認する
+        ・検索結果表示テーブルの1ページあたりの表示件数が10件になっていること
+        ・ページネーションに「全件表示」が表示されていること
+        """
+        # テストデータを作成
+        for i in range(1001):
+            Book.objects.create(title='Book {}'.format(i + 1))
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
+
+        # モデル一覧画面に遷移するためのリクエストを実行
+        response = self.client.get(self.TARGET_URL)
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        # 画面表示項目を検証
+        page = ChangeListPage(response.rendered_content)
+        # 検索結果表示テーブル
+        self.assertEqual(len(page.result_list_rows_texts), 10)
+        # ページネーションの表示内容
+        self.assertEqual(page.result_count_text, '全 1001 件')
+        self.assertEqual(page.paginator_this_page_text, '1')
+        self.assertEqual(
+            page.paginator_link_texts,
+            ['2', '3', '4', '100', '101']
+        )
 
     def test_search_by_title(self):
         """モデル一覧画面にてタイトルで簡易検索"""
@@ -279,7 +349,7 @@ class TestAdminBookChangeList(TestCase):
             [self.book2.pk]
         )
 
-    def test_filter_by_price_ranges(self):
+    def test_filter_by_price_range(self):
         """モデル一覧画面にて価格で絞り込み"""
 
         # テストデータを作成
@@ -288,13 +358,13 @@ class TestAdminBookChangeList(TestCase):
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
         # 価格を「1,000円未満」で絞り込むためのリクエストを実行
-        response = self.client.get(self.TARGET_URL + '?prices=%2C1000')
+        response = self.client.get(self.TARGET_URL + '?price_range=%2C1000')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 0)
 
         # 価格を「1,000円以上 2,000円未満」で絞り込むためのリクエストを実行
-        response = self.client.get(self.TARGET_URL + '?prices=1000%2C2000')
+        response = self.client.get(self.TARGET_URL + '?price_range=1000%2C2000')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
@@ -304,7 +374,7 @@ class TestAdminBookChangeList(TestCase):
         )
 
         # 価格を「2,000円以上」で絞り込むためのリクエストを実行
-        response = self.client.get(self.TARGET_URL + '?prices=2000%2C')
+        response = self.client.get(self.TARGET_URL + '?price_range=2000%2C')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)

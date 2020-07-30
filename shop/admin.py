@@ -49,7 +49,7 @@ class BookAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'title')
     # list_select_related = ('publisher',)
     ordering = ('id',)
-    search_fields = ('title', 'price', 'publish_date')
+    search_fields = ('title', 'price', 'publisher__name', 'authors__name')
     list_per_page = 10
     list_max_show_all = 1000
     # date_hierarchy = 'publish_date'
@@ -78,7 +78,7 @@ class BookAdmin(admin.ModelAdmin):
 
         title = '価格'
         # クエリ文字列のキー名
-        parameter_name = 'prices'
+        parameter_name = 'price_range'
 
         def lookups(self, request, model_admin):
             """クエリ文字列として使用する値と表示ラベルのペアを定義"""
@@ -93,13 +93,14 @@ class BookAdmin(admin.ModelAdmin):
             if self.value() is None:
                 return queryset
             # 値をカンマで分割して、0番目を検索の下限値、1番目を上限値とする
-            prices = self.value().split(',')
-            if prices[0]:
+            price_min = self.value().rpartition(',')[0]
+            price_max = self.value().rpartition(',')[2]
+            if price_min:
                 # 下限値「以上」の検索条件を付加
-                queryset = queryset.filter(price__gte=prices[0])
-            if prices[1]:
+                queryset = queryset.filter(price__gte=price_min)
+            if price_max:
                 # 上限値「未満」の検索条件を付加
-                queryset = queryset.filter(price__lt=prices[1])
+                queryset = queryset.filter(price__lt=price_max)
             return queryset
 
     list_filter = ('size', PriceListFilter)

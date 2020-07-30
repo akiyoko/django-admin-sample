@@ -39,8 +39,24 @@ class ChangeListPage:
     def result_count_text(self):
         """合計件数の表示内容"""
         elements = self.parsed_content.xpath(
-            '//form[@id="changelist-form"]/p[@class="paginator"]')
-        return elements[0].text.strip() if elements else None
+            '//form[@id="changelist-form"]/p[@class="paginator"]/text()')
+        elements = [e.strip() for e in elements if len(e.strip()) > 0]
+        # ['<合計件数>'] or ['…', '<合計件数>']
+        return elements[-1] if elements else None
+
+    @property
+    def paginator_this_page_text(self):
+        """ページネーションの現在ページの表示内容"""
+        elements = self.parsed_content.xpath(
+            '//form[@id="changelist-form"]/p[@class="paginator"]/span')
+        return elements[0].text if elements else None
+
+    @property
+    def paginator_link_texts(self):
+        """ページネーションのリンクの表示内容"""
+        elements = self.parsed_content.xpath(
+            '//form[@id="changelist-form"]/p[@class="paginator"]/a')
+        return [e.text for e in elements] if elements else None
 
     @property
     def action_list_texts(self):
