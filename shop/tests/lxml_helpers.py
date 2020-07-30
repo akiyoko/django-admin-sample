@@ -91,3 +91,10 @@ class ChangeListPage:
         elements = self.parsed_content.xpath(
             '//ul[@class="messagelist"]/li[@class="success"]')
         return elements[0].text_content() if elements else None
+
+    @property
+    def warning_message(self):
+        """警告メッセージの表示内容"""
+        elements = self.parsed_content.xpath(
+            '//ul[@class="messagelist"]/li[@class="warning"]')
+        return elements[0].text_content() if elements else None

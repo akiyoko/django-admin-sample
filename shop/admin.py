@@ -149,30 +149,30 @@ class BookAdmin(admin.ModelAdmin):
     #     return request.user.is_superuser or getattr(request.user, 'email', None)
 
     # actions = ['download_as_various_formats']
-    # actions = ['download_as_csv', 'publish_today']
+    actions = ['download_as_csv', 'publish_today']
 
     def download_as_various_formats(self, request, queryset):
         return super().export_admin_action(request, queryset)
 
     download_as_various_formats.short_description = 'データエクスポート'
 
-    # def download_as_csv(self, request, queryset):
-    #     """選択されたレコードのCSVダウンロードをおこなう"""
-    #     meta = self.model._meta
-    #     response = HttpResponse(content_type='text/csv')
-    #     response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
-    #     writer = csv.writer(response)
-    #     field_names = [field.name for field in meta.fields]
-    #     writer.writerow(field_names)
-    #     for obj in queryset:
-    #         writer.writerow([getattr(obj, field) for field in field_names])
-    #     return response
-    #
-    # download_as_csv.short_description = 'CSVダウンロード'
+    def download_as_csv(self, request, queryset):
+        """選択されたレコードのCSVダウンロードをおこなう"""
+        meta = self.model._meta
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+        writer = csv.writer(response)
+        field_names = [field.name for field in meta.fields]
+        writer.writerow(field_names)
+        for obj in queryset:
+            writer.writerow([getattr(obj, field) for field in field_names])
+        return response
+
+    download_as_csv.short_description = 'CSVダウンロード'
 
     def publish_today(self, request, queryset):
         """選択されたレコードの出版日を今日に更新する"""
-        queryset.update(publish_date=timezone.now().date())
+        queryset.update(publish_date=timezone.localdate())
 
     publish_today.short_description = '出版日を今日に更新'
     publish_today.allowed_permissions = ('change',)
