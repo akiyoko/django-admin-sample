@@ -62,12 +62,12 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
     def cleanup_screenshots(self):
         """過去のスクリーンショットを削除する"""
         # ファイル名が「<テストID>.png」のスクリーンショットを削除
-        for f in glob(os.path.join(self.SCREENSHOT_DIR,
-                                   '{}.png'.format(self.id()))):
+        filename = '{}.png'.format(self.id())
+        for f in glob(os.path.join(self.SCREENSHOT_DIR, filename)):
             os.remove(f)
         # ファイル名が「<テストID>_(<連番>).png」のスクリーンショットを削除
-        for f in glob(os.path.join(self.SCREENSHOT_DIR,
-                                   '{}_([0-9]*).png'.format(self.id()))):
+        filename = '{}_([0-9]*).png'.format(self.id())
+        for f in glob(os.path.join(self.SCREENSHOT_DIR, filename)):
             os.remove(f)
 
     def assert_title(self, text):
@@ -76,18 +76,17 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
 
     def get_result_list_rows(self):
         """検索結果表示テーブルのデータ行の要素オブジェクトを取得する"""
-        if not self.selenium.find_elements_by_id('result_list'):
+        result_list = self.selenium.find_elements_by_id('result_list')
+        if len(result_list) == 0:
             return None
-        table = self.selenium.find_element_by_id('result_list')
-        rows = table.find_elements_by_xpath('tbody/tr')
-        return rows
+        return result_list[0].find_elements_by_xpath('tbody/tr')
 
     def get_action_list(self):
         """アクション一覧の要素オブジェクトを取得する"""
-        if not self.selenium.find_element_by_id('changelist-form'):
+        changelist_form = self.selenium.find_elements_by_id('changelist-form')
+        if len(changelist_form) == 0:
             return None
-        return self.selenium.find_element_by_id(
-            'changelist-form').find_elements_by_xpath('//select/option')
+        return changelist_form[0].find_elements_by_xpath('//select/option')
 
 
 class TestAdminSenario(CustomAdminSeleniumTestCase):
@@ -234,7 +233,7 @@ class TestAdminSenarioByViewStaff(CustomAdminSeleniumTestCase):
         self.book = Book.objects.create(
             title='Book 1',
             price=1000,
-            size='a4',
+            size=Book.SIZE_A4,
             publish_date=date(2020, 1, 1),
         )
 
