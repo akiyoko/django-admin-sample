@@ -384,7 +384,7 @@ class TestAdminBookChangeList(TestCase):
         )
 
     def test_actions_delete_selected(self):
-        """モデルのモデル一覧画面にて一括削除を実行"""
+        """モデル一覧画面にて一括削除を実行"""
 
         # テストデータを作成
         self.create_books()
@@ -406,7 +406,7 @@ class TestAdminBookChangeList(TestCase):
             response, 'admin/delete_selected_confirmation.html')
 
     def test_actions_publish_today(self):
-        """モデルのモデル一覧画面にて「出版日を今日に更新」を実行"""
+        """モデル一覧画面にて「出版日を今日に更新」を実行"""
 
         # テストデータを作成
         self.create_books()
@@ -430,7 +430,7 @@ class TestAdminBookChangeList(TestCase):
         self.assertEqual(book.publish_date, date(2020, 10, 1))
 
     def test_actions_download_as_csv(self):
-        """モデルのモデル一覧画面にて「CSVダウンロード」を実行"""
+        """モデル一覧画面にて「CSVダウンロード」を実行"""
 
         # テストデータを作成
         self.create_books()
@@ -447,6 +447,10 @@ class TestAdminBookChangeList(TestCase):
         )
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get('Content-Disposition'),
+            'attachment; filename={}'.format('shop.book.csv')
+        )
         # CSVファイルの内容を検証
         csv_reader = csv.reader(io.StringIO(response.content.decode('utf-8')))
         rows = list(csv_reader)
@@ -559,7 +563,7 @@ class TestAdminBookChangeListByViewStaff(TestCase):
         self.assertEqual(page.result_count_text, '全 1 件')
 
     # def test_actions_delete_selected(self):
-    #     """モデルのモデル一覧画面で一括削除するとエラー"""
+    #     """モデル一覧画面で一括削除するとエラー"""
     #
     #     # ログイン
     #     self.client.login(username=self.user.username, password=self.PASSWORD)
