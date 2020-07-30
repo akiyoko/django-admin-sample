@@ -70,13 +70,11 @@ class ChangeListPage:
     @property
     def filter_choices_texts(self):
         """絞り込み（フィルタ）の選択肢の表示内容"""
-        filter_rows = self.parsed_content.xpath(
+        elements = self.parsed_content.xpath(
             '//div[@id="changelist-filter"]/ul')
-        if len(filter_rows) == 0:
-            return None
         return [[
-            e.text_content().strip() for e in filter_row.findall('li')
-        ] for filter_row in filter_rows]
+            choice.text_content().strip() for choice in e.findall('li')
+        ] for e in elements] if elements else None
 
     @property
     def success_message(self):
