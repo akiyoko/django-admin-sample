@@ -26,12 +26,20 @@ class TestAdminBookChangeList(TestCase):
         self.user = User.objects.create_superuser(
             'admin', 'admin@example.com', self.PASSWORD)
 
+        # django.utils.timezone.now() が常に同じ日時を返すようにモック化
+        self.now = datetime(2020, 10, 1, 0, 0, 0, tzinfo=timezone.utc)
+        patcher_now = patch(
+            'django.utils.timezone.now',
+            return_value=self.now,
+        )
+        self.mock_now = patcher_now.start()
+        self.addCleanup(patcher_now.stop)
+
     def create_books(self):
         # テストレコードを作成
         self.publisher = Publisher.objects.create(name='自費出版社')
         self.author = Author.objects.create(name='akiyoko')
         self.book = Book.objects.create(
-            id=1,
             title='Django Book 1',
             price=1000,
             size='a4',
@@ -39,14 +47,13 @@ class TestAdminBookChangeList(TestCase):
             publisher=self.publisher,
         )
         self.book2 = Book.objects.create(
-            id=2,
             title='Django Book 2',
             price=2000,
             size='b5',
             publish_date=date(2020, 2, 1),
         )
         self.book2.authors.set([self.author])
-        self.book3 = Book.objects.create(id=3, title='Book 3')
+        self.book3 = Book.objects.create(title='Book 3')
         self.books = [self.book, self.book2, self.book3]
 
     def test_show_page(self):
@@ -54,26 +61,26 @@ class TestAdminBookChangeList(TestCase):
 
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
-        # モデル一覧画面に遷移
+        # モデル一覧画面に遷移するためのリクエストを実行
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin/change_list.html')
 
     def test_page_items_if_result_list_is_empty(self):
-        """モデル一覧画面の画面項目検証（検索結果が0件）
+        """モデル一覧画面の画面項目検証（検索結果が0件の場合）
 
         以下の画面項目を確認する
-        ・追加ボタンが表示される
-        ・簡易検索フォームが表示される
-        ・絞り込み（フィルタ）が表示される
-        ・アクション一覧が表示されない
-        ・検索結果表示テーブルが表示されない
-        ・合計件数が「全 X 件」と表示される
+        ・追加ボタンが表示されていること
+        ・簡易検索フォームが表示されていること
+        ・絞り込み（フィルタ）が表示されていること
+        ・アクション一覧が表示されていないこと
+        ・検索結果表示テーブルが表示されていないこと
+        ・合計件数が「全 0 件」と表示されていること
         """
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
-        # モデル一覧画面に遷移
+        # モデル一覧画面に遷移するためのリクエストを実行
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
@@ -81,36 +88,47 @@ class TestAdminBookChangeList(TestCase):
 
         # 画面表示項目を検証
         page = ChangeListPage(response.rendered_content)
-        # 追加ボタンが表示されることを確認
+        # 追加ボタンが表示されていることを確認
         self.assertIsNotNone(page.add_button)
-        # 簡易検索フォームが表示されることを確認
+        # 簡易検索フォームが表示されていることを確認
         self.assertIsNotNone(page.search_form)
-        # 絞り込み（フィルタ）が表示されることを確認
-        self.assertIsNotNone(page.filter)
-        # アクション一覧が表示されないことを確認
+        # 絞り込み（フィルタ）が表示されていることを確認
+        self.assertEqual(
+            page.filter_headers,
+            ['サイズ で絞り込む', '価格 で絞り込む']
+        )
+        self.assertEqual(
+            page.filter_choices_texts[0],
+            ['全て', 'A4 - 210 x 297 mm', 'B5 - 182 x 257 mm']
+        )
+        self.assertEqual(
+            page.filter_choices_texts[1],
+            ['全て', '1,000円未満', '1,000円以上 2,000円未満', '2,000円以上']
+        )
+        # アクション一覧が表示されていないことを確認
         self.assertIsNone(page.action_list_texts)
-        # 検索結果表示テーブルが表示されないことを確認
+        # 検索結果表示テーブルが表示されていないことを確認
         self.assertIsNone(page.result_list)
-        # 合計件数が表示されることを確認
+        # 合計件数が表示されていることを確認
         self.assertEqual(page.result_count_text, '全 0 件')
 
     def test_page_items_if_result_list_is_not_empty(self):
-        """モデル一覧画面の画面項目検証（検索結果が0件でない）
+        """モデル一覧画面の画面項目検証（検索結果が0件でない場合）
 
         以下の画面項目を確認する
-        ・追加ボタンが表示される
-        ・簡易検索フォームが表示される
-        ・絞り込み（フィルタ）が表示される
-        ・アクション一覧が表示される
-        ・検索結果表示テーブルが表示される
-        ・合計件数が「全 X 件」と表示される
+        ・追加ボタンが表示されていること
+        ・簡易検索フォームが表示されていること
+        ・絞り込み（フィルタ）が表示されていること
+        ・アクション一覧が表示されていること
+        ・検索結果表示テーブルが表示されていること
+        ・合計件数が「全 n 件」と表示されていること
         """
         # テストデータを作成
         self.create_books()
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # モデル一覧画面に遷移
+        # モデル一覧画面に遷移するためのリクエストを実行
         response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
@@ -118,16 +136,17 @@ class TestAdminBookChangeList(TestCase):
 
         # 画面表示項目を検証
         page = ChangeListPage(response.rendered_content)
-        # 追加ボタンが表示されることを確認
+        # 追加ボタンが表示されていることを確認
         self.assertIsNotNone(page.add_button)
-        # 簡易検索フォームが表示されることを確認
+        # 簡易検索フォームが表示されていることを確認
         self.assertIsNotNone(page.search_form)
-        # 絞り込み（フィルタ）が表示されることを確認
-        self.assertIsNotNone(page.filter)
+        # 絞り込み（フィルタ）が表示されていることを確認
+        self.assertIsNotNone(page.filter_headers)
         # アクション一覧
         self.assertEqual(
             page.action_list_texts,
-            ['---------', '選択された 本 の削除', 'CSVダウンロード', '出版日を今日に更新']
+            ['---------', '選択された 本 の削除', 'CSVダウンロード',
+             '出版日を今日に更新']
         )
         # 検索結果表示テーブル
         self.assertEqual(
@@ -158,23 +177,24 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # モデル一覧画面で簡易検索を実行
+        # 「Book」で簡易検索するためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?q=Book')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 3)
         self.assertEqual(
             [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book.id, self.book2.id, self.book3.id]
+            [self.book.pk, self.book2.pk, self.book3.pk]
         )
 
+        # 「Django」で簡易検索するためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?q=Django')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 2)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book.id, self.book2.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book.pk, self.book2.pk]
         )
 
     def test_search_by_price(self):
@@ -185,14 +205,14 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # モデル一覧画面で簡易検索を実行
+        # 「1000」で簡易検索するためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?q=1000')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book.pk]
         )
 
     def test_search_by_publisher_name(self):
@@ -203,14 +223,14 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # モデル一覧画面で簡易検索を実行
+        # 「自費出版社」で簡易検索するためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?q=自費出版社')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book.pk]
         )
 
     def test_search_by_author_name(self):
@@ -221,14 +241,14 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # モデル一覧画面で簡易検索を実行
+        # 「akiyoko」で簡易検索するためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?q=akiyoko')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book2.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book2.pk]
         )
 
     def test_filter_by_size(self):
@@ -239,27 +259,27 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # サイズを「A4 - 210 x 297 mm」で絞り込み
+        # サイズを「A4 - 210 x 297 mm」で絞り込むためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?size__exact=a4')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book.pk]
         )
 
-        # サイズを「B5 - 182 x 257 mm」で絞り込み
+        # サイズを「B5 - 182 x 257 mm」で絞り込むためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?size__exact=b5')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book2.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book2.pk]
         )
 
-    def test_filter_by_prices(self):
+    def test_filter_by_price_ranges(self):
         """モデル一覧画面にて価格で絞り込み"""
 
         # テストデータを作成
@@ -267,30 +287,30 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # 価格を「1,000円未満」で絞り込み
+        # 価格を「1,000円未満」で絞り込むためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?prices=%2C1000')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 0)
 
-        # 価格を「1,000円以上 2,000円未満」で絞り込み
+        # 価格を「1,000円以上 2,000円未満」で絞り込むためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?prices=1000%2C2000')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book.pk]
         )
 
-        # 価格を「2,000円以上」で絞り込み
+        # 価格を「2,000円以上」で絞り込むためのリクエストを実行
         response = self.client.get(self.TARGET_URL + '?prices=2000%2C')
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['cl'].result_count, 1)
         self.assertEqual(
-            [obj.id for obj in response.context_data['cl'].result_list],
-            [self.book2.id]
+            [obj.pk for obj in response.context_data['cl'].result_list],
+            [self.book2.pk]
         )
 
     def test_actions_delete_selected(self):
@@ -301,20 +321,21 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # アクション一覧から一括削除を実行
+        # アクション一覧の一括削除を実行するためのリクエストを実行
         response = self.client.post(
             self.TARGET_URL,
             {
                 'action': 'delete_selected',
-                '_selected_action': [b.id for b in self.books],
+                '_selected_action': [book.pk for book in self.books],
             },
+            follow=True,
         )
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'admin/delete_selected_confirmation.html')
+        self.assertTemplateUsed(
+            response, 'admin/delete_selected_confirmation.html')
 
-    @patch('shop.admin.timezone.localdate', return_value=date(2020, 10, 1))
-    def test_actions_publish_today(self, _mock_localdate):
+    def test_actions_publish_today(self):
         """モデルのモデル一覧画面にて「出版日を今日に更新」を実行"""
 
         # テストデータを作成
@@ -322,41 +343,41 @@ class TestAdminBookChangeList(TestCase):
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # アクション一覧からCSVダウンロードを実行
+        # アクション一覧の「出版日を今日に更新」を実行するためのリクエストを実行
         response = self.client.post(
             self.TARGET_URL,
             {
                 'action': 'publish_today',
-                '_selected_action': [self.book.id],
+                '_selected_action': [self.book.pk],
             },
             follow=True,
         )
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'admin/change_list.html')
         # レコードが更新されていることを確認
         book = Book.objects.get(pk=self.book.pk)
         self.assertEqual(book.publish_date, date(2020, 10, 1))
 
-    @patch('django.utils.timezone.now',
-           return_value=datetime(2020, 10, 1, tzinfo=timezone.utc))
-    def test_actions_download_as_csv(self, _mock_now):
-        """モデルのモデル一覧画面でCSVダウンロード"""
+    def test_actions_download_as_csv(self):
+        """モデルのモデル一覧画面にて「CSVダウンロード」を実行"""
 
         # テストデータを作成
         self.create_books()
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
 
-        # アクション一覧からCSVダウンロードを実行
+        # アクション一覧の「CSVダウンロード」を実行するためのリクエストを実行
         response = self.client.post(
             self.TARGET_URL,
             {
                 'action': 'download_as_csv',
-                '_selected_action': [b.id for b in self.books],
+                '_selected_action': [book.pk for book in self.books],
             },
         )
         # レスポンスを検証
         self.assertEqual(response.status_code, 200)
+        # CSVファイルの内容を検証
         csv_reader = csv.reader(io.StringIO(response.content.decode('utf-8')))
         rows = list(csv_reader)
         header = rows.pop(0)
@@ -404,11 +425,24 @@ class TestAdminBookChangeListByViewStaff(TestCase):
         ]
 
     def test_show_page(self):
-        """モデル一覧画面への画面遷移
+        """モデル一覧画面への画面遷移"""
 
-        画面項目の検証
-        ・追加ボタンが表示されないことを検証する
-        ・アクション一覧にCSVダウンロードのみが表示されていること"""
+        # ログイン
+        self.client.login(username=self.user.username, password=self.PASSWORD)
+
+        # モデル一覧画面に遷移
+        response = self.client.get(self.TARGET_URL)
+        # レスポンスを検証
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'admin/change_list.html')
+
+    def test_page_items(self):
+        """モデル一覧画面の画面項目検証（検索結果が0件でない場合）
+
+        以下の画面項目を確認する
+        ・追加ボタンが表示されていないこと
+        ・アクション一覧に「CSVダウンロード」のみが表示されていること
+        """
 
         # ログイン
         self.client.login(username=self.user.username, password=self.PASSWORD)
@@ -421,17 +455,38 @@ class TestAdminBookChangeListByViewStaff(TestCase):
 
         # 画面表示項目を検証
         page = ChangeListPage(response.rendered_content)
-        # 追加ボタンが表示されないこと
+        # 追加ボタンが表示されていないことを確認
         self.assertIsNone(page.add_button)
-        # 簡易検索フォームが表示されていること
+        # 簡易検索フォームが表示されていることを確認
         self.assertIsNotNone(page.search_form)
-        # 絞り込み（フィルタ）が表示されていること
-        self.assertIsNotNone(page.filter)
-        # アクション一覧
-        self.assertEqual(page.action_list_texts, ['---------', 'CSVダウンロード'])
-        # 検索結果表示テーブル
+        # 絞り込み（フィルタ）が表示されていることを確認
+        self.assertEqual(
+            page.filter_headers,
+            ['サイズ で絞り込む', '価格 で絞り込む']
+        )
+        self.assertEqual(
+            page.filter_choices_texts[0],
+            ['全て', 'A4 - 210 x 297 mm', 'B5 - 182 x 257 mm']
+        )
+        self.assertEqual(
+            page.filter_choices_texts[1],
+            ['全て', '1,000円未満', '1,000円以上 2,000円未満', '2,000円以上']
+        )
+        # アクション一覧に「CSVダウンロード」のみが表示されていることを確認
+        self.assertEqual(
+            page.action_list_texts, ['---------', 'CSVダウンロード'])
         # 検索結果表示テーブルが表示されていること
-        self.assertIsNotNone(page.result_list)
+        self.assertEqual(
+            page.result_list_head_texts,
+            ['ID', 'タイトル', '価格', 'サイズ', '出版日']
+        )
+        self.assertEqual(len(page.result_list_rows_texts), 1)
+        self.assertEqual(
+            page.result_list_rows_texts[0],
+            ['Book 1', '-', '-', '-']
+        )
+        # 合計件数
+        self.assertEqual(page.result_count_text, '全 1 件')
 
     # def test_actions_delete_selected(self):
     #     """モデルのモデル一覧画面で一括削除するとエラー"""
@@ -444,17 +499,16 @@ class TestAdminBookChangeListByViewStaff(TestCase):
     #         self.TARGET_URL,
     #         {
     #             'action': 'delete_selected',
-    #             '_selected_action': [b.id for b in self.books],
+    #             '_selected_action': [book.pk for book in self.books],
     #         },
     #         follow=True,
     #     )
     #     # レスポンスを検証
     #     self.assertEqual(response.status_code, 200)
     #     self.assertTemplateUsed(response, 'admin/change_list.html')
-    #     # TODO
     #     # 画面表示項目を検証
     #     page = ChangeListPage(response.rendered_content)
-    #     # 追加ボタンが表示されていること
+    #     # TODO
     #     self.assertEqual(page.warning_message, '操作が選択されていません。')
 
     # ...（略）...
@@ -468,10 +522,10 @@ class TestAdminBookChangeListByAnonymousUser(TestCase):
     def test_show_page(self):
         """モデル一覧画面への画面遷移
 
-        - ログイン画面にリダイレクトされることを検証する"""
+        ログイン画面にリダイレクトされることを確認する"""
 
-        # モデル一覧画面に遷移（リダイレクトをともなう場合は follow=True を指定）
-        response = self.client.get(self.TARGET_URL, follow=True)
+        # モデル一覧画面に遷移するためのリクエストを実行
+        response = self.client.get(self.TARGET_URL)
         # レスポンスを検証
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'admin/login.html')
+        self.assertRedirects(
+            response, '/admin/login/?next=/admin/shop/book/')

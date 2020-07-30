@@ -62,27 +62,20 @@ class ChangeListPage:
         return elements[0] if elements else None
 
     @property
-    def filter(self):
-        """絞り込み（フィルタ）のHTMLElementオブジェクト"""
-        elements = self.parsed_content.xpath('//div[@id="changelist-filter"]')
-        return elements[0] if elements else None
-
-    @property
     def filter_headers(self):
         """絞り込み（フィルタ）のh3タイトルの表示内容"""
-        if self.filter is None:
-            return None
-        filter_headers = self.filter.xpath('/h3')
-        return [e.text for e in filter_headers]
+        elements = self.parsed_content.xpath('//div[@id="changelist-filter"]/h3')
+        return [e.text for e in elements] if elements else None
 
     @property
     def filter_choices_texts(self):
         """絞り込み（フィルタ）の選択肢の表示内容"""
-        if self.filter is None:
+        filter_rows = self.parsed_content.xpath(
+            '//div[@id="changelist-filter"]/ul')
+        if len(filter_rows) == 0:
             return None
-        filter_rows = self.filter.xpath('/ul')
         return [[
-            e.text_content().strip() for e in filter_row
+            e.text_content().strip() for e in filter_row.findall('li')
         ] for filter_row in filter_rows]
 
     @property
