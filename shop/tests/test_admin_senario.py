@@ -19,7 +19,7 @@ User = get_user_model()
 
 
 class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
-    """管理サイトのシナリオテスト用のTestCase"""
+    """管理サイトのブラウザテスト用のTestCase"""
 
     # スクリーンショットを保存するディレクトリ
     SCREENSHOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -103,21 +103,21 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
     def test_book_crud(self):
         """BookモデルのCRUD検証（システム管理者の場合）"""
 
-        # 1) ログイン画面に遷移
+        # 1. ログイン画面に遷移
         self.selenium.get(self.live_server_url + '/admin/')
         self.wait_page_loaded()
         self.assert_title('ログイン')
         # スクリーンショットを撮る（1枚目）
         self.save_screenshot()
 
-        # 2) システム管理者でログイン
+        # 2. システム管理者でログイン
         self.admin_login(self.user.username, self.PASSWORD)
         # ホーム画面が表示されていることを確認
         self.assert_title('ホーム')
         # スクリーンショットを撮る（2枚目）
         self.save_screenshot()
 
-        # 3) ホーム画面で「ショップ」リンクを押下
+        # 3. ホーム画面で「ショップ」リンクを押下
         self.selenium.find_element_by_link_text('ショップ').click()
         self.wait_page_loaded()
         # アプリケーションホーム画面が表示されていることを確認
@@ -125,17 +125,16 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # スクリーンショットを撮る（3枚目）
         self.save_screenshot()
 
-        # 4) アプリケーションホーム画面で「本」リンクを押下
+        # 4. アプリケーションホーム画面で「本」リンクを押下
         self.selenium.find_element_by_link_text('本').click()
         self.wait_page_loaded()
         # モデル一覧画面が表示されていることを確認
         self.assert_title('変更する 本 を選択')
-        rows = self.get_result_list_rows()
-        self.assertEqual(rows, None)
+        self.assertIsNone(self.get_result_list_rows())
         # スクリーンショットを撮る（4枚目）
         self.save_screenshot()
 
-        # 5) モデル一覧画面で「本 を追加」リンクを押下
+        # 5. モデル一覧画面で「本 を追加」リンクを押下
         self.selenium.find_element_by_link_text('本 を追加').click()
         self.wait_page_loaded()
         # モデル追加画面が表示されていることを確認
@@ -143,26 +142,25 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # スクリーンショットを撮る（5枚目）
         self.save_screenshot()
 
-        # 6) モデル追加画面で項目を入力して「保存」ボタンを押下
+        # 6. モデル追加画面で項目を入力して「保存」ボタンを押下
         self.selenium.find_element_by_name('title').send_keys('Book 1')
         self.selenium.find_element_by_name('price').send_keys('1000')
         self.selenium.find_element_by_xpath(
-            '//select[@name="size"]/option[text()="%s"]' % 'A4 - 210 x 297 mm'
+            '//select[@name="size"]/option[text()="{}"]'.format('A4 - 210 x 297 mm')
         ).click()
         self.selenium.find_element_by_name('publish_date').send_keys('2020-09-01')
         self.selenium.find_element_by_xpath(
-            '//input[@value="%s"]' % '保存').click()
+            '//input[@value="{}"]'.format('保存')).click()
         self.wait_page_loaded()
         # モデル一覧画面が表示されていることを確認
         self.assert_title('変更する 本 を選択')
-        rows = self.get_result_list_rows()
-        self.assertEqual(len(rows), 1)
+        self.assertEqual(len(self.get_result_list_rows()), 1)
         # レコードが追加されていることを確認
         self.assertTrue(Book.objects.filter(title='Book 1').exists())
         # スクリーンショットを撮る（6枚目）
         self.save_screenshot()
 
-        # 7) モデル一覧画面で追加した本のリンクを押下
+        # 7. モデル一覧画面で追加した本のリンクを押下
         rows = self.get_result_list_rows()
         rows[0].find_element_by_tag_name('a').click()
         self.wait_page_loaded()
@@ -171,28 +169,28 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # スクリーンショットを撮る（7枚目）
         self.save_screenshot()
 
-        # 8) モデル変更画面で項目を変更して「保存」ボタンを押下
+        # 8. モデル変更画面で項目を変更して「保存」ボタンを押下
         self.selenium.find_element_by_name('price').clear()
         self.selenium.find_element_by_name('price').send_keys('2000')
         self.selenium.find_element_by_xpath(
-            '//input[@value="%s"]' % '保存').click()
+            '//input[@value="{}"]'.format('保存')).click()
         self.wait_page_loaded()
         # モデル一覧画面が表示されていることを確認
         self.assert_title('変更する 本 を選択')
-        rows = self.get_result_list_rows()
-        self.assertEqual(len(rows), 1)
+        self.assertEqual(len(self.get_result_list_rows()), 1)
         # レコードが更新されていることを確認
         book = Book.objects.get(title='Book 1')
         self.assertEqual(book.price, 2000)
         # スクリーンショットを撮る（8枚目）
         self.save_screenshot()
 
-        # 9) モデル一覧画面で追加した本のチェックボックスを選択し、
+        # 9. モデル一覧画面で追加した本のチェックボックスを選択し、
         #    アクション一覧から「選択された 本 の削除」を選択して「実行」ボタンを押下
         rows = self.get_result_list_rows()
         rows[0].find_element_by_xpath('//input[@type="checkbox"]').click()
         self.selenium.find_element_by_xpath(
-            '//select[@name="action"]//option[text()="%s"]' % '選択された 本 の削除'
+            '//select[@name="action"]//option[text()="{}"]'.format(
+                '選択された 本 の削除')
         ).click()
         self.selenium.find_element_by_xpath(
             '//form[@id="changelist-form"]//button[@type="submit"]').click()
@@ -202,14 +200,13 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # スクリーンショットを撮る（9枚目）
         self.save_screenshot()
 
-        # 10) モデル削除確認画面で「はい」ボタンを押下
+        # 10. モデル削除確認画面で「はい」ボタンを押下
         self.selenium.find_element_by_xpath(
-            '//input[@value="%s"]' % 'はい').click()
+            '//input[@value="{}"]'.format('はい')).click()
         self.wait_page_loaded()
         # モデル一覧画面が表示されていることを確認
         self.assert_title('変更する 本 を選択')
-        rows = self.get_result_list_rows()
-        self.assertIsNone(rows)
+        self.assertIsNone(self.get_result_list_rows())
         # レコードが削除されていることを確認
         self.assertFalse(Book.objects.filter(title='Book 1').exists())
         # スクリーンショットを撮る（10枚目）
@@ -240,21 +237,21 @@ class TestAdminSenarioByViewStaff(CustomAdminSeleniumTestCase):
     def test_book_crud(self):
         """BookモデルのCRUD検証（閲覧用スタッフの場合）"""
 
-        # 1) ログイン画面に遷移
+        # 1. ログイン画面に遷移
         self.selenium.get(self.live_server_url + '/admin/')
         self.wait_page_loaded()
         self.assert_title('ログイン')
         # スクリーンショットを撮る（1枚目）
         self.save_screenshot()
 
-        # 2) 閲覧用スタッフでログイン
+        # 2. 閲覧用スタッフでログイン
         self.admin_login(self.user.username, self.PASSWORD)
         # ホーム画面が表示されていることを確認
         self.assert_title('ホーム')
         # スクリーンショットを撮る（2枚目）
         self.save_screenshot()
 
-        # 3) ホーム画面で「ショップ」リンクを押下
+        # 3. ホーム画面で「ショップ」リンクを押下
         self.selenium.find_element_by_link_text('ショップ').click()
         self.wait_page_loaded()
         # アプリケーションホーム画面が表示されていることを確認
@@ -262,7 +259,7 @@ class TestAdminSenarioByViewStaff(CustomAdminSeleniumTestCase):
         # スクリーンショットを撮る（3枚目）
         self.save_screenshot()
 
-        # 4) アプリケーションホーム画面で「本」リンクを押下
+        # 4. アプリケーションホーム画面で「本」リンクを押下
         self.selenium.find_element_by_link_text('本').click()
         self.wait_page_loaded()
         # モデル一覧画面が表示されていることを確認

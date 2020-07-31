@@ -160,7 +160,7 @@ class TestAdminBookChangeList(TestCase):
         )
         # 検索結果表示テーブル
         self.assertEqual(
-            page.result_list_head_texts,
+            page.result_list_header_texts,
             ['ID', 'タイトル', '価格', 'サイズ', '出版日']
         )
         self.assertEqual(len(page.result_list_rows_texts), 3)
