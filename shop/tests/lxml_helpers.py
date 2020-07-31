@@ -9,13 +9,13 @@ class ChangeListPage:
 
     @property
     def result_list(self):
-        """検索結果表示テーブルのHTMLElementオブジェクト"""
+        """検索結果テーブルのHTMLElementオブジェクト"""
         elements = self.parsed_content.xpath('//table[@id="result_list"]')
         return elements[0] if elements else None
 
     @property
     def result_list_header_texts(self):
-        """検索結果表示テーブルのヘッダの表示内容"""
+        """検索結果テーブルのヘッダの表示内容"""
         if self.result_list is None:
             return None
         head = self.result_list.xpath('thead/tr')[0]
@@ -26,7 +26,7 @@ class ChangeListPage:
 
     @property
     def result_list_rows_texts(self):
-        """検索結果表示テーブルの行ごとの表示内容"""
+        """検索結果テーブルのデータ行の表示内容"""
         if self.result_list is None:
             return None
         rows = self.result_list.xpath('tbody/tr')
