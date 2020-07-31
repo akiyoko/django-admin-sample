@@ -70,6 +70,12 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
         for f in glob(os.path.join(self.SCREENSHOT_DIR, filename)):
             os.remove(f)
 
+    def select_option(self, name, text):
+        """セレクトボックスを選択する"""
+        self.selenium.find_element_by_xpath(
+            '//select[@name="{}"]/option[text()="{}"]'.format(name, text)
+        ).click()
+
     def assert_title(self, text):
         """タイトルを検証する"""
         self.assertEqual(self.selenium.title.split(' | ')[0], text)
@@ -134,7 +140,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # スクリーンショットを撮る（4枚目）
         self.save_screenshot()
 
-        # 5. モデル一覧画面で「本 を追加」リンクを押下
+        # 5. モデル一覧画面で「本 を追加」ボタンを押下
         self.selenium.find_element_by_link_text('本 を追加').click()
         self.wait_page_loaded()
         # モデル追加画面が表示されていることを確認
@@ -145,9 +151,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # 6. モデル追加画面で項目を入力して「保存」ボタンを押下
         self.selenium.find_element_by_name('title').send_keys('Book 1')
         self.selenium.find_element_by_name('price').send_keys('1000')
-        self.selenium.find_element_by_xpath(
-            '//select[@name="size"]/option[text()="{}"]'.format('A4 - 210 x 297 mm')
-        ).click()
+        self.select_option('size', 'A4 - 210 x 297 mm')
         self.selenium.find_element_by_name('publish_date').send_keys('2020-09-01')
         self.selenium.find_element_by_xpath(
             '//input[@value="{}"]'.format('保存')).click()
@@ -188,10 +192,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         #    アクション一覧から「選択された 本 の削除」を選択して「実行」ボタンを押下
         rows = self.get_result_list_rows()
         rows[0].find_element_by_xpath('//input[@type="checkbox"]').click()
-        self.selenium.find_element_by_xpath(
-            '//select[@name="action"]//option[text()="{}"]'.format(
-                '選択された 本 の削除')
-        ).click()
+        self.select_option('action', '選択された 本 の削除')
         self.selenium.find_element_by_xpath(
             '//form[@id="changelist-form"]//button[@type="submit"]').click()
         self.wait_page_loaded()
@@ -264,7 +265,7 @@ class TestAdminSenarioByViewStaff(CustomAdminSeleniumTestCase):
         self.wait_page_loaded()
         # モデル一覧画面が表示されていることを確認
         self.assert_title('表示する本を選択')
-        # 「本 を追加」リンクが表示されていないことを確認
+        # 「本 を追加」ボタンが表示されていないことを確認
         self.assertTrue(
             len(self.selenium.find_elements_by_link_text('本 を追加')) == 0)
         # アクション一覧に一括削除が含まれていないことを確認

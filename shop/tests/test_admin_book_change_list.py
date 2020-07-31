@@ -388,7 +388,7 @@ class TestAdminBookChangeList(TestCase):
         )
 
     def test_action_delete_selected(self):
-        """モデル一覧画面で一括削除を実行"""
+        """モデル一覧画面で一括削除アクションを実行"""
 
         # テストデータを作成
         self.create_books()
@@ -409,7 +409,7 @@ class TestAdminBookChangeList(TestCase):
             response, 'admin/delete_selected_confirmation.html')
 
     def test_action_publish_today(self):
-        """モデル一覧画面で「出版日を今日に更新」を実行"""
+        """モデル一覧画面で「出版日を今日に更新」アクションを実行"""
 
         # テストデータを作成
         self.create_books()
@@ -432,7 +432,7 @@ class TestAdminBookChangeList(TestCase):
         self.assertEqual(book.publish_date, date(2020, 10, 1))
 
     def test_action_download_as_csv(self):
-        """モデル一覧画面で「CSVダウンロード」を実行"""
+        """モデル一覧画面で「CSVダウンロード」アクションを実行"""
 
         # テストデータを作成
         self.create_books()
