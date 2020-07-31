@@ -14,7 +14,7 @@ class ChangeListPage:
         return elements[0] if elements else None
 
     @property
-    def result_list_head_texts(self):
+    def result_list_header_texts(self):
         """検索結果表示テーブルのヘッダの表示内容"""
         if self.result_list is None:
             return None
@@ -41,7 +41,7 @@ class ChangeListPage:
         elements = self.parsed_content.xpath(
             '//form[@id="changelist-form"]/p[@class="paginator"]/text()')
         elements = [e.strip() for e in elements if len(e.strip()) > 0]
-        # ['<合計件数>'] or ['…', '<合計件数>']
+        # ['<合計件数>'] or ['…', '<合計件数>'] となるので最後の要素を返す
         return elements[-1] if elements else None
 
     @property
@@ -53,7 +53,7 @@ class ChangeListPage:
 
     @property
     def paginator_link_texts(self):
-        """ページネーションのリンクの表示内容"""
+        """ページネーションのページ移動リンクの表示内容"""
         elements = self.parsed_content.xpath(
             '//form[@id="changelist-form"]/p[@class="paginator"]/a')
         return [e.text for e in elements] if elements else None
