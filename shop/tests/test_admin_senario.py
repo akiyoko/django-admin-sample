@@ -24,6 +24,9 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
     # スクリーンショットを保存するディレクトリ
     SCREENSHOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                   'screenshots')
+    # ウィンドウのデフォルトサイズ
+    DEFAULT_WINDOW_WIDTH = 1000
+    DEFAULT_WINDOW_HEIGHT = 750
 
     available_apps = None
     browser = 'chrome'
@@ -38,9 +41,22 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
         chrome_options = webdriver.ChromeOptions()
         # ヘッドレスモード
         chrome_options.add_argument('--headless')
+        # 言語設定
+        chrome_options.add_argument('--lang=ja')
+        # ウィンドウサイズ
+        chrome_options.add_argument('--window-size={},{}'.format(
+            cls.DEFAULT_WINDOW_WIDTH, cls.DEFAULT_WINDOW_HEIGHT))
         return webdriver.Chrome(chrome_options=chrome_options)
 
-    def save_screenshot(self):
+    def set_window_size(self, width=None, height=None):
+        """ウィンドウサイズを変更する"""
+        if width is None:
+            width = self.DEFAULT_WINDOW_WIDTH
+        if height is None:
+            height = self.DEFAULT_WINDOW_HEIGHT
+        self.selenium.set_window_size(width, height)
+
+    def save_screenshot(self, width=None, height=None):
         """スクリーンショットを撮る
 
         ファイル名は「<テストID>_(<連番>).png」
@@ -52,12 +68,21 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
         if not os.path.exists(self.SCREENSHOT_DIR):
             os.makedirs(self.SCREENSHOT_DIR, exist_ok=True)
 
+        # ウィンドウサイズを変更
+        current_window_size = self.selenium.get_window_size()
+        if width is not None or height is not None:
+            self.set_window_size(width, height)
+
         filename = '{}.png'.format(self.id())
         i = 1
         while os.path.exists(os.path.join(self.SCREENSHOT_DIR, filename)):
             i += 1
             filename = '{}_({}).png'.format(self.id(), i)
         self.selenium.save_screenshot(os.path.join(self.SCREENSHOT_DIR, filename))
+
+        # ウィンドウサイズを元に戻す
+        self.set_window_size(
+            current_window_size['width'], current_window_size['height'])
 
     def cleanup_screenshots(self):
         """過去のスクリーンショットを削除する"""
@@ -70,15 +95,15 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
         for f in glob(os.path.join(self.SCREENSHOT_DIR, filename)):
             os.remove(f)
 
+    def assert_title(self, text):
+        """タイトルを検証する"""
+        self.assertEqual(self.selenium.title.split(' | ')[0], text)
+
     def select_option(self, name, text):
         """セレクトボックスを選択する"""
         self.selenium.find_element_by_xpath(
             '//select[@name="{}"]/option[text()="{}"]'.format(name, text)
         ).click()
-
-    def assert_title(self, text):
-        """タイトルを検証する"""
-        self.assertEqual(self.selenium.title.split(' | ')[0], text)
 
     def get_result_list_rows(self):
         """検索結果表示テーブルのデータ行の要素オブジェクトを取得する"""
@@ -146,7 +171,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # モデル追加画面が表示されていることを確認
         self.assert_title('本 を追加')
         # スクリーンショットを撮る（5枚目）
-        self.save_screenshot()
+        self.save_screenshot(height=950)
 
         # 6. モデル追加画面で項目を入力して「保存」ボタンを押下
         self.selenium.find_element_by_name('title').send_keys('Book 1')
@@ -171,7 +196,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # モデル変更画面が表示されていることを確認
         self.assert_title('本 を変更')
         # スクリーンショットを撮る（7枚目）
-        self.save_screenshot()
+        self.save_screenshot(height=950)
 
         # 8. モデル変更画面で項目を変更して「保存」ボタンを押下
         self.selenium.find_element_by_name('price').clear()
