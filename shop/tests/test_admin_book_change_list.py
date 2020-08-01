@@ -478,8 +478,6 @@ class TestAdminBookChangeList(TestCase):
              '', '', '', '2020-10-01 00:00:00+00:00']
         )
 
-    # ...（略）...
-
 
 class TestAdminBookChangeListByViewStaff(TestCase):
     """管理サイトの Book モデル一覧画面のユニットテスト（閲覧用スタッフの場合）"""
@@ -535,8 +533,6 @@ class TestAdminBookChangeListByViewStaff(TestCase):
         # アクション一覧に「CSVダウンロード」のみが表示されていることを確認
         self.assertEqual(
             page.action_list_texts, ['---------', 'CSVダウンロード'])
-
-    # ...（略）...
 
 
 class TestAdminBookChangeListByAnonymousUser(TestCase):
