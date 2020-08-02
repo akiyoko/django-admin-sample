@@ -2,16 +2,15 @@ import os
 from datetime import date
 from glob import glob
 
-from django.contrib.admin.tests import AdminSeleniumTestCase
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
-from selenium import webdriver
-
 try:
     # chromedriver_binaryをimportすることでChromeDriverのパスを通してくれる
     import chromedriver_binary
 except ImportError:
     raise
+from django.contrib.admin.tests import AdminSeleniumTestCase
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from selenium import webdriver
 
 from ..models import Book
 
