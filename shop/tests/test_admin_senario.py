@@ -171,7 +171,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # モデル追加画面が表示されていることを確認
         self.assert_title('本 を追加')
         # スクリーンショットを撮る（5枚目）
-        self.save_screenshot(height=950)
+        self.save_screenshot(height=900)
 
         # 6. モデル追加画面で項目を入力して「保存」ボタンを押下
         self.selenium.find_element_by_name('title').send_keys('Book 1')
@@ -196,7 +196,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # モデル変更画面が表示されていることを確認
         self.assert_title('本 を変更')
         # スクリーンショットを撮る（7枚目）
-        self.save_screenshot(height=950)
+        self.save_screenshot(height=900)
 
         # 8. モデル変更画面で項目を変更して「保存」ボタンを押下
         self.selenium.find_element_by_name('price').clear()

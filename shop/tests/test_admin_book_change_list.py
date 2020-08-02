@@ -453,7 +453,7 @@ class TestAdminBookChangeList(TestCase):
             'attachment; filename={}'.format('shop.book.csv')
         )
         # CSVファイルの内容を検証
-        csv_reader = csv.reader(io.StringIO(response.content.decode('utf-8')))
+        csv_reader = csv.reader(io.StringIO(response.content.decode()))
         rows = list(csv_reader)
         header = rows.pop(0)
         self.assertEqual(
