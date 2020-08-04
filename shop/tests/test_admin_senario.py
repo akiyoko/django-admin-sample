@@ -58,7 +58,7 @@ class CustomAdminSeleniumTestCase(AdminSeleniumTestCase):
     def save_screenshot(self, width=None, height=None):
         """スクリーンショットを撮る
 
-        ファイル名は「<テストID>_(<連番>).png」
+        ファイル名は「<テストID>.png」または「<テストID>_(<連番>).png」
         例)
         - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud.png
         - shop.tests.test_admin_senario.TestAdminSenario.test_book_crud_(2).png
@@ -170,7 +170,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # モデル追加画面が表示されていることを確認
         self.assert_title('本 を追加')
         # スクリーンショットを撮る（5枚目）
-        self.save_screenshot(height=900)
+        self.save_screenshot(height=1300)
 
         # 6. モデル追加画面で項目を入力して「保存」ボタンを押下
         self.selenium.find_element_by_name('title').send_keys('Book 1')
@@ -195,7 +195,7 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # モデル変更画面が表示されていることを確認
         self.assert_title('本 を変更')
         # スクリーンショットを撮る（7枚目）
-        self.save_screenshot(height=900)
+        self.save_screenshot(height=1300)
 
         # 8. モデル変更画面で項目を変更して「保存」ボタンを押下
         self.selenium.find_element_by_name('price').clear()

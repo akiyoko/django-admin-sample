@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # 3rd party applications
     'django_extensions',
     'import_export',
+    'tinymce',
 
     # My applications
     # 'accounts.apps.AccountsConfig',
@@ -163,3 +164,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 # LOGOUT_REDIRECT_URL = 'admin:login'
+# X_FRAME_OPTIONS = 'SAMEORIGIN'
