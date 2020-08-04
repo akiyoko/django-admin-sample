@@ -20,6 +20,7 @@ class CustomAdminSite(AdminSite):
     site_url = None
 
     def get_urls(self):
+        """URLパターンと対応するビューを定義"""
         return [
             # お知らせ画面のURLパターン
             path('info/', self.admin_view(self.info_view)),
@@ -28,11 +29,11 @@ class CustomAdminSite(AdminSite):
     def info_view(self, request):
         """お知らせ画面を表示するためのビュー"""
         context = {
-            # 共通で利用する変数
-            **self.each_context(request),
             # 本日の登録件数を表示するための変数
             'books_created_today': Book.objects.filter(
                 created_at__date=timezone.localdate()),
+            # 共通で利用する変数
+            **self.each_context(request),
         }
         return TemplateResponse(request, 'admin/info.html', context)
 
