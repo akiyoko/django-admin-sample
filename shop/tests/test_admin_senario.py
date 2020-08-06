@@ -237,6 +237,14 @@ class TestAdminSenario(CustomAdminSeleniumTestCase):
         # スクリーンショットを撮る（10枚目）
         self.save_screenshot()
 
+        # # 11. モデル一覧画面でパンくずリストの「ホーム」リンクを押下
+        # self.selenium.find_element_by_link_text('ホーム').click()
+        # self.wait_page_loaded()
+        # # ホーム画面が表示されていることを確認
+        # self.assert_title('ホーム')
+        # # スクリーンショットを撮る（11枚目）
+        # self.save_screenshot()
+
 
 class TestAdminSenarioByViewStaff(CustomAdminSeleniumTestCase):
     """管理サイトのシナリオテスト（閲覧用スタッフの場合）"""
