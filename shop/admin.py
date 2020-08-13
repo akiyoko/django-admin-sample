@@ -9,13 +9,15 @@ from django.utils.html import format_html
 # from import_export import resources
 
 from .forms import BookAdminForm, PublisherAdminForm
-from .models import Author, Book, BookStock, PublishedBook, Publisher, \
-    UnpublishedBook
+from .models import Author, Book, PublishedBook, Publisher, UnpublishedBook
+# from .models import BookStock
 
 
 class BookInline(admin.TabularInline):
     # ForeignKey を持っている側（多側）のモデルをインラインにする
     model = Book
+    fields = ('title', 'price')
+    extra = 1
 
 
 # class BookStockInline(admin.TabularInline):
@@ -45,6 +47,7 @@ class BookAdmin(admin.ModelAdmin):
     # list_editable = ('publish_date',)
     list_per_page = 10
     list_max_show_all = 1000
+
     # empty_value_display = '(なし)'
 
     def format_price(self, obj):
@@ -99,6 +102,7 @@ class BookAdmin(admin.ModelAdmin):
 
     ordering = ('id',)
     search_fields = ('title', 'price', 'publisher__name', 'authors__name')
+
     # date_hierarchy = 'publish_date'
 
     class PriceListFilter(admin.SimpleListFilter):
@@ -173,6 +177,7 @@ class BookAdmin(admin.ModelAdmin):
     # exclude = ('publisher',)
     # readonly_fields = ('id', 'created_by', 'created_at')
     form = BookAdminForm
+
     # autocomplete_fields = ('publisher',)
     # radio_fields = {'size': admin.HORIZONTAL}
     # formfield_overrides = {
