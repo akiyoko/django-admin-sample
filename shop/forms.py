@@ -4,6 +4,7 @@ from tinymce.widgets import AdminTinyMCE
 
 
 class PostalCodeWidget(MultiWidget):
+    """郵便番号用ウィジェット"""
     template_name = 'admin/widgets/postal_code.html'
 
     def __init__(self, attrs=None):
@@ -14,11 +15,13 @@ class PostalCodeWidget(MultiWidget):
         super().__init__(widgets, attrs)
 
     def decompress(self, value):
+        """画面表示用に分解する"""
         if value and len(value) > 3:
             return [value[:3], value[3:]]
         return [None, None]
 
     def value_from_datadict(self, data, files, name):
+        """永続化用に結合する"""
         values = super().value_from_datadict(data, files, name)
         if all(values):
             return ''.join(values)
