@@ -1,8 +1,14 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
 
 User = get_user_model()
+
+postal_code_validator = RegexValidator(regex=r'^\d{3}-\d{4}$',
+                                       message="郵便番号の形式になっていません。")
+phone_number_validator = RegexValidator(regex=r'^0\d{1,4}-\d{1,4}-\d{4}$',
+                                        message="電話番号の形式になっていません。")
 
 
 class Publisher(models.Model):
@@ -63,11 +69,14 @@ class Publisher(models.Model):
     )
 
     name = models.CharField('出版社名', max_length=255)
-    postal_code = models.CharField('郵便番号', max_length=7, null=True, blank=True)
+    postal_code = models.CharField('郵便番号', max_length=8, null=True, blank=True,
+                                   validators=[postal_code_validator])
     prefecture = models.CharField('都道府県', max_length=255, choices=PREFECTURE_CHOICES,
                                   null=True, blank=True)
     address_1 = models.CharField('市区町村番地', max_length=255, null=True, blank=True)
     address_2 = models.CharField('建物名', max_length=255, null=True, blank=True)
+    phone_number = models.CharField('電話番号', max_length=15, null=True, blank=True,
+                                    validators=[phone_number_validator])
 
     def __str__(self):
         return self.name

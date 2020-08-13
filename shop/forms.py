@@ -9,22 +9,48 @@ class PostalCodeWidget(MultiWidget):
 
     def __init__(self, attrs=None):
         widgets = [
-            TextInput(attrs={'size': '4', 'maxlength': 3}),
-            TextInput(attrs={'size': '5', 'maxlength': 4}),
+            TextInput(attrs={'size': '5', 'maxlength': 3}),
+            TextInput(attrs={'size': '6', 'maxlength': 4}),
         ]
         super().__init__(widgets, attrs)
 
     def decompress(self, value):
         """画面表示用に分解する"""
-        if value and len(value) > 3:
-            return [value[:3], value[3:]]
+        if value and value.count('-') >= 1:
+            return value.split('-')
         return [None, None]
 
     def value_from_datadict(self, data, files, name):
         """永続化用に結合する"""
         values = super().value_from_datadict(data, files, name)
         if all(values):
-            return ''.join(values)
+            return '-'.join(values)
+        return None
+
+
+class PhoneNumberWidget(MultiWidget):
+    """電話番号用ウィジェット"""
+    template_name = 'admin/widgets/phone_number.html'
+
+    def __init__(self, attrs=None):
+        widgets = [
+            TextInput(attrs={'size': '6', 'maxlength': 5}),
+            TextInput(attrs={'size': '6', 'maxlength': 4}),
+            TextInput(attrs={'size': '6', 'maxlength': 4}),
+        ]
+        super().__init__(widgets, attrs)
+
+    def decompress(self, value):
+        """画面表示用に分解する"""
+        if value and value.count('-') >= 2:
+            return value.split('-', 2)
+        return [None, None, None]
+
+    def value_from_datadict(self, data, files, name):
+        """永続化用に結合する"""
+        values = super().value_from_datadict(data, files, name)
+        if all(values):
+            return '-'.join(values)
         return None
 
 
@@ -33,10 +59,12 @@ class PublisherAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # サブウィジェットのmaxlengthを変更するために親ウィジェットのmaxlengthを削除
         self.fields['postal_code'].widget.attrs.pop('maxlength', None)
+        self.fields['phone_number'].widget.attrs.pop('maxlength', None)
 
     class Meta:
         widgets = {
             'postal_code': PostalCodeWidget(),
+            'phone_number': PhoneNumberWidget(),
         }
 
 
