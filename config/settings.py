@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.forms',                   # templates/admin/widgets/ 用の設定
 
     # 3rd party applications
     'django_extensions',
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     # My applications
     # 'accounts.apps.AccountsConfig',
     'shop.apps.ShopConfig',
+    'addresses.apps.AddressesConfig',
 ]
 
 MIDDLEWARE = [

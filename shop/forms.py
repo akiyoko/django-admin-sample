@@ -1,5 +1,40 @@
 from django import forms
+from django.forms.widgets import MultiWidget, TextInput
 from tinymce.widgets import AdminTinyMCE
+
+
+class PostalCodeWidget(MultiWidget):
+    template_name = 'admin/widgets/postal_code.html'
+
+    def __init__(self, attrs=None):
+        widgets = [
+            TextInput(attrs={'size': '4', 'maxlength': 3}),
+            TextInput(attrs={'size': '5', 'maxlength': 4}),
+        ]
+        super().__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value and len(value) > 3:
+            return [value[:3], value[3:]]
+        return [None, None]
+
+    def value_from_datadict(self, data, files, name):
+        values = super().value_from_datadict(data, files, name)
+        if all(values):
+            return ''.join(values)
+        return None
+
+
+class PublisherAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # サブウィジェットのmaxlengthを変更するために親ウィジェットのmaxlengthを削除
+        self.fields['postal_code'].widget.attrs.pop('maxlength', None)
+
+    class Meta:
+        widgets = {
+            'postal_code': PostalCodeWidget(),
+        }
 
 
 class BookAdminForm(forms.ModelForm):

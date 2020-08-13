@@ -6,9 +6,9 @@ from django.http.response import HttpResponse
 # from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
-from import_export import resources
+# from import_export import resources
 
-from .forms import BookAdminForm
+from .forms import BookAdminForm, PublisherAdminForm
 from .models import Author, Book, BookStock, PublishedBook, Publisher, \
     UnpublishedBook
 
@@ -23,22 +23,19 @@ class BookInline(admin.TabularInline):
 #     model = BookStock
 
 
-class BookResource(resources.ModelResource):
-    class Meta:
-        model = Book
+# class BookResource(resources.ModelResource):
+#     class Meta:
+#         model = Book
 
 
-class BookAdmin(admin.ModelAdmin):
 # class BookAdmin(ExportActionMixin, admin.ModelAdmin):
-
+class BookAdmin(admin.ModelAdmin):
     class Media:
         css = {
             'all': (
                 'admin/css/changelists_book.css',
-                # 'admin/css/forms_book.css',
             )
         }
-        # js = ('custom_code.js',)
 
     ###############################
     # モデル一覧画面のカスタマイズ
@@ -46,13 +43,63 @@ class BookAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'format_price', 'size', 'publish_date')
     list_display_links = ('id', 'title')
     # list_editable = ('publish_date',)
-    ordering = ('id',)
-    search_fields = ('title', 'price', 'publisher__name', 'authors__name')
     list_per_page = 10
     list_max_show_all = 1000
-
-    # date_hierarchy = 'publish_date'
     # empty_value_display = '(なし)'
+
+    def format_price(self, obj):
+        """価格のフォーマットを変更する"""
+        if obj.price is not None:
+            return '{:,d} 円'.format(obj.price)
+
+    format_price.short_description = '価格'
+    format_price.admin_order_field = 'price'
+
+    def format_publisher_name(self, obj):
+        """出版社のフォーマットを変更する"""
+        if obj.publisher is not None:
+            return obj.publisher.name
+            # return format_html(
+            #     '<a href="{}">{}</a>',
+            #     reverse('admin:shop_publisher_change', args=[obj.publisher.id]),
+            #     obj.publisher.name,
+            # )
+
+    format_publisher_name.short_description = '出版社'
+    format_publisher_name.admin_order_field = 'publisher__name'
+
+    def format_publish_date(self, obj):
+        """出版日のフォーマットを変更する"""
+        if obj.publish_date is not None:
+            return obj.publish_date.strftime('%Y/%m/%d')
+
+    format_publish_date.short_description = '出版日'
+    format_publish_date.admin_order_field = 'publish_date'
+
+    def format_image(self, obj):
+        """画像をHTMLで修飾する"""
+        if obj.image:
+            return format_html('<img src="{}" width="100" />', obj.image.url)
+
+    format_image.short_description = '画像'
+    format_image.empty_value_display = 'No image'
+
+    # def format_created_by(self, obj):
+    #     """登録ユーザーのフォーマットを変更する"""
+    #     if obj.created_by:
+    #         return format_html(
+    #             '<a href="{}">{}</a>',
+    #             reverse('admin:auth_user_change', args=[obj.created_by.id]),
+    #             obj.created_by.username,
+    #         )
+    #     return getattr(self.format_created_by, 'empty_value_display',
+    #                    self.get_empty_value_display())
+    #
+    # format_created_by.short_description = '登録ユーザー'
+
+    ordering = ('id',)
+    search_fields = ('title', 'price', 'publisher__name', 'authors__name')
+    # date_hierarchy = 'publish_date'
 
     class PriceListFilter(admin.SimpleListFilter):
         """価格で絞り込むためのフィルタクラス"""
@@ -117,56 +164,6 @@ class BookAdmin(admin.ModelAdmin):
     publish_today.short_description = '出版日を今日に更新'
     publish_today.allowed_permissions = ('change',)
 
-    def format_price(self, obj):
-        """価格のフォーマットを変更する"""
-        if obj.price is not None:
-            return '{:,d} 円'.format(obj.price)
-
-    format_price.short_description = '価格'
-    format_price.admin_order_field = 'price'
-
-    def format_publisher_name(self, obj):
-        """出版社のフォーマットを変更する"""
-        if obj.publisher is not None:
-            return obj.publisher.name
-            # return format_html(
-            #     '<a href="{}">{}</a>',
-            #     reverse('admin:shop_publisher_change', args=[obj.publisher.id]),
-            #     obj.publisher.name,
-            # )
-
-    format_publisher_name.short_description = '出版社'
-    format_publisher_name.admin_order_field = 'publisher__name'
-
-    def format_publish_date(self, obj):
-        """出版日のフォーマットを変更する"""
-        if obj.publish_date is not None:
-            return obj.publish_date.strftime('%Y/%m/%d')
-
-    format_publish_date.short_description = '出版日'
-    format_publish_date.admin_order_field = 'publish_date'
-
-    def format_image(self, obj):
-        """画像をHTMLで修飾する"""
-        if obj.image:
-            return format_html('<img src="{}" width="100" />', obj.image.url)
-
-    format_image.short_description = '画像'
-    format_image.empty_value_display = 'No image'
-
-    # def format_created_by(self, obj):
-    #     """登録ユーザーのフォーマットを変更する"""
-    #     if obj.created_by:
-    #         return format_html(
-    #             '<a href="{}">{}</a>',
-    #             reverse('admin:auth_user_change', args=[obj.created_by.id]),
-    #             obj.created_by.username,
-    #         )
-    #     return getattr(self.format_created_by, 'empty_value_display',
-    #                    self.get_empty_value_display())
-    #
-    # format_created_by.short_description = '登録ユーザー'
-
     ###############################
     # モデル追加・変更画面のカスタマイズ
     ###############################
@@ -225,8 +222,26 @@ class BookAdmin(admin.ModelAdmin):
 
 
 class PublisherAdmin(admin.ModelAdmin):
+    class Media:
+        css = {
+            'all': (
+                '//code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css',
+            )
+        }
+        js = (
+            '//code.jquery.com/ui/1.12.1/jquery-ui.min.js',
+            'admin/js/postal_code.js',
+        )
+
+    ###############################
+    # モデル一覧画面のカスタマイズ
+    ###############################
     search_fields = ('name',)
 
+    ###############################
+    # モデル追加・変更画面のカスタマイズ
+    ###############################
+    form = PublisherAdminForm
     inlines = [
         BookInline,
     ]
