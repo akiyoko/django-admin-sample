@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.forms',                   # templates/admin/widgets/ 用の設定
+    'django.forms',                   # 追加
 
     # 3rd party applications
     'django_extensions',
@@ -116,6 +116,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# LOGOUT_REDIRECT_URL = 'admin:login'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
@@ -145,27 +147,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media_root')
 # Email
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-
-#################
-# debug toolbar #
-#################
-
-# if DEBUG:
-#     def show_toolbar(request):
-#         return True
-#
-#
-#     INSTALLED_APPS += (
-#         'debug_toolbar',
-#     )
-#     MIDDLEWARE += (
-#         'debug_toolbar.middleware.DebugToolbarMiddleware',
-#     )
-#     DEBUG_TOOLBAR_CONFIG = {
-#         'SHOW_TOOLBAR_CALLBACK': show_toolbar,
-#     }
-
-
-# LOGOUT_REDIRECT_URL = 'admin:login'
-# X_FRAME_OPTIONS = 'SAMEORIGIN'
