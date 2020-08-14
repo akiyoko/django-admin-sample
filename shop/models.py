@@ -71,11 +71,14 @@ class Publisher(models.Model):
     name = models.CharField('出版社名', max_length=255)
     postal_code = models.CharField('郵便番号', max_length=8, null=True, blank=True,
                                    validators=[postal_code_validator])
-    prefecture = models.CharField('都道府県', max_length=255, choices=PREFECTURE_CHOICES,
+    prefecture = models.CharField('都道府県', max_length=255,
+                                  choices=PREFECTURE_CHOICES,
                                   null=True, blank=True)
-    address_1 = models.CharField('市区町村番地', max_length=255, null=True, blank=True)
+    address_1 = models.CharField('市区町村番地', max_length=255,
+                                 null=True, blank=True)
     address_2 = models.CharField('建物名', max_length=255, null=True, blank=True)
-    phone_number = models.CharField('電話番号', max_length=15, null=True, blank=True,
+    phone_number = models.CharField('電話番号', max_length=15,
+                                    null=True, blank=True,
                                     validators=[phone_number_validator])
 
     def __str__(self):
@@ -112,8 +115,7 @@ class Book(models.Model):
     title = models.CharField('タイトル', max_length=255)
     image = models.ImageField('画像', max_length=255, null=True, blank=True)
     publisher = models.ForeignKey(Publisher, verbose_name='出版社',
-                                  on_delete=models.PROTECT,
-                                  null=True, blank=True)
+                                  on_delete=models.PROTECT, null=True, blank=True)
     authors = models.ManyToManyField(Author, verbose_name='著者', blank=True)
     price = models.PositiveIntegerField('価格', null=True, blank=True)
     size = models.CharField('サイズ', max_length=2, choices=SIZE_CHOICES,

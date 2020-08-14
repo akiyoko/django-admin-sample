@@ -30,7 +30,7 @@ class PostalCodeWidget(MultiWidget):
 
 class PhoneNumberWidget(MultiWidget):
     """電話番号用ウィジェット"""
-    template_name = 'admin/widgets/phone_number.html'
+    template_name = 'admin/widgets/multiwidget_hyphen.html'
 
     def __init__(self, attrs=None):
         widgets = [
@@ -70,6 +70,10 @@ class PublisherAdminForm(forms.ModelForm):
 
 class BookAdminForm(forms.ModelForm):
     class Meta:
+        labels = {
+            'title': '書籍名',
+            'image': '書影',
+        }
         widgets = {
             # 'publish_date': forms.widgets.SelectDateWidget(),
             'description': AdminTinyMCE(),
