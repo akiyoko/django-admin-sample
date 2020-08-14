@@ -15,15 +15,15 @@ class PostalCodeWidget(MultiWidget):
         super().__init__(widgets, attrs)
 
     def decompress(self, value):
-        """画面表示用に分解する"""
+        """画面表示用にハイフンで分解する"""
         if value and value.count('-') >= 1:
             return value.split('-')
         return [None, None]
 
     def value_from_datadict(self, data, files, name):
-        """永続化用に結合する"""
+        """永続化用にハイフンで結合する"""
         values = super().value_from_datadict(data, files, name)
-        if all(values):
+        if any(values):
             return '-'.join(values)
         return None
 
@@ -41,15 +41,15 @@ class PhoneNumberWidget(MultiWidget):
         super().__init__(widgets, attrs)
 
     def decompress(self, value):
-        """画面表示用に分解する"""
+        """画面表示用にハイフンで分解する"""
         if value and value.count('-') >= 2:
             return value.split('-', 2)
         return [None, None, None]
 
     def value_from_datadict(self, data, files, name):
-        """永続化用に結合する"""
+        """永続化用にハイフンで結合する"""
         values = super().value_from_datadict(data, files, name)
-        if all(values):
+        if any(values):
             return '-'.join(values)
         return None
 

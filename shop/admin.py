@@ -246,10 +246,11 @@ class PublisherAdmin(admin.ModelAdmin):
     ###############################
     # モデル追加・変更画面のカスタマイズ
     ###############################
+    # fields = ('name', 'phone_number')
     form = PublisherAdminForm
-    inlines = [
-        BookInline,
-    ]
+    # inlines = [
+    #     BookInline,
+    # ]
 
 
 class PublishedBookAdmin(BookAdmin):
