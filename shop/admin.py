@@ -101,6 +101,7 @@ class BookAdmin(admin.ModelAdmin):
     # format_created_by.short_description = '登録ユーザー'
 
     ordering = ('id',)
+    # search_fields = ('title', 'price', 'publish_date')
     search_fields = ('title', 'price', 'publisher__name', 'authors__name')
 
     # date_hierarchy = 'publish_date'
