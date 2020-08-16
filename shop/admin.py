@@ -249,9 +249,9 @@ class PublisherAdmin(admin.ModelAdmin):
     ###############################
     # fields = ('name', 'phone_number')
     form = PublisherAdminForm
-    # inlines = [
-    #     BookInline,
-    # ]
+    inlines = [
+        BookInline,
+    ]
 
 
 class PublishedBookAdmin(BookAdmin):
