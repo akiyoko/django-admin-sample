@@ -1,6 +1,7 @@
 import csv
 
 from django.contrib import admin
+from django.contrib.admin.options import IncorrectLookupParameters
 from django.db.models import Q
 from django.http.response import HttpResponse
 # from django.urls import reverse
@@ -126,8 +127,9 @@ class BookAdmin(admin.ModelAdmin):
             if self.value() is None:
                 return queryset
             # 値をカンマで分割して、0番目を検索の下限値、1番目を上限値とする
-            price_min = self.value().rpartition(',')[0]
-            price_max = self.value().rpartition(',')[2]
+            if self.value().count(',') != 1:
+                raise IncorrectLookupParameters
+            price_min, price_max = self.value().split(',')
             if price_min:
                 # 下限値「以上」の検索条件を付加
                 queryset = queryset.filter(price__gte=price_min)
