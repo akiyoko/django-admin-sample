@@ -30,6 +30,11 @@ class BookInline(admin.TabularInline):
 # class BookResource(resources.ModelResource):
 #     class Meta:
 #         model = Book
+#         fields = export_order = [
+#             'id', 'title', 'publisher', 'price', 'size', 'publish_date']
+#
+#     def dehydrate_publisher(self, obj):
+#         return obj.publisher.name if obj.publisher else None
 
 
 # class BookAdmin(ExportActionMixin, admin.ModelAdmin):
@@ -44,12 +49,10 @@ class BookAdmin(admin.ModelAdmin):
     ###############################
     # モデル一覧画面のカスタマイズ
     ###############################
+    # 画面表示フィールド
     list_display = ('id', 'title', 'format_price', 'size', 'publish_date')
     list_display_links = ('id', 'title')
     # list_editable = ('publish_date',)
-    list_per_page = 10
-    list_max_show_all = 1000
-
     # empty_value_display = '(なし)'
 
     def format_price(self, obj):
@@ -102,11 +105,12 @@ class BookAdmin(admin.ModelAdmin):
     #
     # format_created_by.short_description = '登録ユーザー'
 
+    # 初期表示時のソート
     ordering = ('id',)
+
+    # 簡易検索
     # search_fields = ('title', 'price', 'publish_date')
     search_fields = ('title', 'price', 'publisher__name', 'authors__name')
-
-    # date_hierarchy = 'publish_date'
 
     class PriceListFilter(admin.SimpleListFilter):
         """価格で絞り込むためのフィルタクラス"""
@@ -140,16 +144,19 @@ class BookAdmin(admin.ModelAdmin):
                 queryset = queryset.filter(price__lt=price_max)
             return queryset
 
+    # 絞り込み（フィルタ）
     list_filter = ('size', PriceListFilter)
 
-    # actions = ['download_as_various_formats']
-    # resource_class = BookResource
-    #
-    # def download_as_various_formats(self, request, queryset):
-    #     return super().export_admin_action(request, queryset)
-    #
-    # download_as_various_formats.short_description = 'データエクスポート'
+    # ページネーション
+    list_per_page = 10
+    list_max_show_all = 1000
 
+    # 日付ドリルダウンナビゲーション
+    # date_hierarchy = 'publish_date'
+
+    # アクション一覧
+    # resource_class = BookResource
+    # actions = ['export_admin_action']
     actions = ['download_as_csv', 'publish_today']
 
     def download_as_csv(self, request, queryset):
@@ -176,25 +183,29 @@ class BookAdmin(admin.ModelAdmin):
     ###############################
     # モデル追加・変更画面のカスタマイズ
     ###############################
+    # 画面表示フィールド
     # fields = (
     #     'id', 'title', 'price', 'size', 'publish_date', 'created_by', 'created_at',
     # )
     # exclude = ('publisher',)
     # readonly_fields = ('id', 'created_by', 'created_at')
-    form = BookAdminForm
-
     # autocomplete_fields = ('publisher',)
     # radio_fields = {'size': admin.HORIZONTAL}
+    # prepopulated_fields = {'description': ('title', 'publish_date', )}
     # formfield_overrides = {
     #     models.CharField: {'widget': TextInput(attrs={'size': '80'})},
     #     models.TextField: {
     #         'widget': Textarea(attrs={'cols': '80', 'rows': '20'}),
     #     }
     # }
+
+    # フォーム
+    form = BookAdminForm
+
+    # インライン表示
     # inlines = [
     #     BookStockInline,
     # ]
-    # prepopulated_fields = {'description': ('title', 'publish_date', )}
 
     ###############################
     # その他のカスタマイズ
