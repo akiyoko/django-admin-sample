@@ -109,7 +109,7 @@ class BookAdmin(admin.ModelAdmin):
 
     class PriceListFilter(admin.SimpleListFilter):
         """価格で絞り込むためのフィルタクラス"""
-
+        # タイトル名
         title = '価格'
         # クエリ文字列のキー名
         parameter_name = 'price_range'
