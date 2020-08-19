@@ -16,6 +16,7 @@ class AddressAdmin(admin.ModelAdmin):
     ordering = ('postal_code', 'id',)
     list_filter = (
         'has_multiple_postal_codes', 'has_banchi', 'has_chome', 'has_multiple_sections',
+        'update_status', 'update_reason',
     )
 
 
