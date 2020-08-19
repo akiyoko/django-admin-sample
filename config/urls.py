@@ -1,9 +1,13 @@
+# import csv
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 # from django.http.response import HttpResponse
 from django.urls import include, path
+
+from addresses import views as addresses_views
 
 handler404 = 'common.handlers.handler404'
 handler500 = 'common.handlers.handler500'
@@ -36,8 +40,8 @@ handler500 = 'common.handlers.handler500'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('address/', include('addresses.urls')),
     path('tinymce/', include('tinymce.urls')),
+    path('address_search/', addresses_views.AddressSearchAjaxView.as_view()),
     # パスワード再設定用のURLパターンを登録
     path('admin/password_reset/', auth_views.PasswordResetView.as_view(),
          name='admin_password_reset'),

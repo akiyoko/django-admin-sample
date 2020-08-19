@@ -5,7 +5,7 @@
             var postalCode = $("#id_postal_code_0").val() + $("#id_postal_code_1").val();
             $.ajax({
               type: "get",
-              url: "/address/",
+              url: "/address_search/",
               dataType: "json",
               data: {
                 postalCode: postalCode
@@ -23,14 +23,14 @@
                 // 郵便番号コードに対応する住所が1件の場合
                 else if (data.length === 1) {
                     $("#id_prefecture").val(data[0].prefecture);
-                    $("#id_address_1").val(data[0].city + data[0].town_area);
+                    $("#id_address_1").val(data[0].city + data[0].section);
                     $("#id_address_2").val("");
                 }
                 // 郵便番号コードに対応する住所が複数件の場合
                 else {
                     var dialogElement = $("<div>");
                     $.each(data, function(i) {
-                        var address = this.prefecture + this.city + this.town_area;
+                        var address = this.prefecture + this.city + this.section;
                         var inputElement = $("<label>").append($("<input>").attr({
                             type: "radio",
                             name: "address",
@@ -46,7 +46,7 @@
                             'OK': function () {
                                 var i = $('input[name="address"]:checked').val();
                                 $("#id_prefecture").val(data[i].prefecture);
-                                $("#id_address_1").val(data[i].city + data[i].town_area);
+                                $("#id_address_1").val(data[i].city + data[i].section);
                                 $("#id_address_2").val("");
                                 $(this).dialog('close');
                             }
