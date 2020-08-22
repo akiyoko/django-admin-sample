@@ -1,8 +1,10 @@
 {% extends "admin/base_site.html" %}
 
+{% comment %}
 {% block content_title %}
 <h1>お知らせ</h1>
 {% endblock %}
+{% endcomment %}
 
 {% block content %}
 <p>本日 {% now "SHORT_DATE_FORMAT" %} の登録件数は {{ books_created_today.count }} 件です。</p>

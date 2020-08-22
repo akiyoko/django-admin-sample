@@ -32,6 +32,8 @@ class CustomAdminSite(AdminSite):
             # 本日の登録件数を表示するための変数
             'books_created_today': Book.objects.filter(
                 created_at__date=timezone.localdate()),
+            # タイトル
+            'title': 'お知らせ',
             # 共通で利用する変数
             **self.each_context(request),
         }
