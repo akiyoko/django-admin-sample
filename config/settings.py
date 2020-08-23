@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+from django.conf.locale.ja import formats as formats
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -131,6 +132,14 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# 日付フォーマットを変更
+# formats.DATE_FORMAT = 'Y/m/d'
+# formats.DATE_INPUT_FORMATS = ('%Y/%m/%d',)
+# formats.DATETIME_FORMAT = 'Y/m/d H:i'
+# formats.DATETIME_INPUT_FORMATS = ('%Y/%m/%d %H:%M',)
+# formats.TIME_FORMAT = 'H:i'
+# formats.TIME_INPUT_FORMATS = ('%H:%M',)
 
 
 # Static files (CSS, JavaScript, Images)

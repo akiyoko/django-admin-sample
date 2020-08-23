@@ -56,7 +56,7 @@ class BookAdmin(admin.ModelAdmin):
     # empty_value_display = '(なし)'
 
     def format_price(self, obj):
-        """価格のフォーマットを変更する"""
+        """価格フィールドのフォーマットを変更する"""
         if obj.price is not None:
             return '{:,d} 円'.format(obj.price)
 
@@ -64,7 +64,7 @@ class BookAdmin(admin.ModelAdmin):
     format_price.admin_order_field = 'price'
 
     def format_publisher_name(self, obj):
-        """出版社のフォーマットを変更する"""
+        """出版社フィールドのフォーマットを変更する"""
         if obj.publisher is not None:
             return obj.publisher.name
             # return format_html(
@@ -77,7 +77,7 @@ class BookAdmin(admin.ModelAdmin):
     format_publisher_name.admin_order_field = 'publisher__name'
 
     def format_publish_date(self, obj):
-        """出版日のフォーマットを変更する"""
+        """出版日フィールドのフォーマットを変更する"""
         if obj.publish_date is not None:
             return obj.publish_date.strftime('%Y/%m/%d')
 
@@ -121,7 +121,7 @@ class BookAdmin(admin.ModelAdmin):
         parameter_name = 'price_range'
 
         def lookups(self, request, model_admin):
-            """クエリ文字列として使用する値と表示ラベルのペアを定義"""
+            """クエリ文字列として使用する値と選択肢の表示ラベルのペアを定義"""
             return (
                 (',1000', '1,000円未満'),
                 ('1000,2000', '1,000円以上 2,000円未満'),
@@ -137,15 +137,17 @@ class BookAdmin(admin.ModelAdmin):
                 raise IncorrectLookupParameters
             price_min, price_max = self.value().split(',')
             if price_min:
-                # 下限値「以上」の検索条件を付加
+                # 「<下限値>以上」の検索条件を付加
                 queryset = queryset.filter(price__gte=price_min)
             if price_max:
-                # 上限値「未満」の検索条件を付加
+                # 「<上限値>未満」の検索条件を付加
                 queryset = queryset.filter(price__lt=price_max)
             return queryset
 
     # 絞り込み（フィルタ）
     list_filter = ('size', PriceListFilter)
+    # list_filter = ('size', PriceListFilter, 'publish_date')
+    # list_filter = ('size', 'price', 'publish_date', 'publisher', 'authors')
 
     # ページネーション
     list_per_page = 10
