@@ -74,9 +74,9 @@ class Publisher(models.Model):
     prefecture = models.CharField('都道府県', max_length=255,
                                   choices=PREFECTURE_CHOICES,
                                   null=True, blank=True)
-    address_1 = models.CharField('市区町村番地', max_length=255,
+    address_1 = models.CharField('住所1', max_length=255,
                                  null=True, blank=True)
-    address_2 = models.CharField('建物名', max_length=255, null=True, blank=True)
+    address_2 = models.CharField('住所2', max_length=255, null=True, blank=True)
     phone_number = models.CharField('電話番号', max_length=15,
                                     null=True, blank=True,
                                     validators=[phone_number_validator])
